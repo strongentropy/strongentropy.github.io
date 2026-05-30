@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Strong Entropy LLC</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -33,7 +34,7 @@
       border: 1px solid var(--border);
       border-radius: 12px;
       padding: 3rem 3.5rem;
-      max-width: 560px;
+      max-width: 600px;
       width: 100%;
       text-align: center;
     }
@@ -54,11 +55,12 @@
     }
 
     .tagline {
-      font-size: 0.8rem;
+      font-size: 0.72rem;
       color: var(--muted);
-      letter-spacing: 0.12em;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
       margin-bottom: 2.5rem;
+      line-height: 1.6;
     }
 
     .divider {
@@ -99,6 +101,7 @@
       border-radius: 6px;
       padding: 1rem 1.2rem;
       text-align: left;
+      overflow-x: auto;
     }
 
     .fingerprint-block .fp-label {
@@ -113,7 +116,7 @@
       font-size: 0.78rem;
       color: var(--accent);
       letter-spacing: 0.06em;
-      word-break: break-all;
+      white-space: nowrap;
       line-height: 1.7;
     }
 
@@ -130,35 +133,28 @@
 
     <!-- Logo -->
     <svg class="logo" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Strong Entropy logo">
-      <!-- Outer ring -->
       <circle cx="40" cy="40" r="37" stroke="#1f1f2e" stroke-width="2"/>
-      <!-- Entropy dot grid — varying opacities suggest randomness -->
       <g fill="#7cfc9f">
-        <!-- row 1 -->
         <circle cx="24" cy="24" r="2.5" opacity="0.9"/>
         <circle cx="33" cy="22" r="1.5" opacity="0.4"/>
         <circle cx="40" cy="23" r="2"   opacity="0.7"/>
         <circle cx="48" cy="22" r="1.5" opacity="0.2"/>
         <circle cx="56" cy="24" r="2.5" opacity="0.6"/>
-        <!-- row 2 -->
         <circle cx="22" cy="33" r="1.5" opacity="0.3"/>
         <circle cx="30" cy="31" r="2"   opacity="0.8"/>
         <circle cx="40" cy="32" r="1.5" opacity="0.5"/>
         <circle cx="50" cy="31" r="2.5" opacity="0.9"/>
         <circle cx="58" cy="33" r="1.5" opacity="0.4"/>
-        <!-- row 3 (center) -->
         <circle cx="24" cy="40" r="2"   opacity="0.6"/>
         <circle cx="32" cy="40" r="2.5" opacity="0.3"/>
         <circle cx="40" cy="40" r="3"   opacity="1"/>
         <circle cx="48" cy="40" r="2.5" opacity="0.5"/>
         <circle cx="56" cy="40" r="2"   opacity="0.8"/>
-        <!-- row 4 -->
         <circle cx="22" cy="47" r="1.5" opacity="0.7"/>
         <circle cx="30" cy="49" r="2.5" opacity="0.2"/>
         <circle cx="40" cy="48" r="2"   opacity="0.6"/>
         <circle cx="50" cy="49" r="1.5" opacity="0.9"/>
         <circle cx="58" cy="47" r="2"   opacity="0.3"/>
-        <!-- row 5 -->
         <circle cx="24" cy="56" r="2.5" opacity="0.4"/>
         <circle cx="33" cy="58" r="1.5" opacity="0.8"/>
         <circle cx="40" cy="57" r="2"   opacity="0.3"/>
@@ -168,7 +164,7 @@
     </svg>
 
     <h1>Strong Entropy LLC</h1>
-    <p class="tagline">Security &middot; Technology &middot; Consulting</p>
+    <p class="tagline">Quantitative FinTech &nbsp;&middot;&nbsp; Security &nbsp;&middot;&nbsp; Automation and Enablement</p>
 
     <hr class="divider">
 
