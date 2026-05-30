@@ -1,6 +1,8 @@
 User-agent: *
 Allow: /
 
+Sitemap: https://strongentropy.com/sitemap.xml
+
 # AI training crawlers — opt out
 User-agent: GPTBot
 Disallow: /
