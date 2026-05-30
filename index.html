@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Strong Entropy LLC</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #0c0c0e;
+      --surface: #13131a;
+      --border:  #1f1f2e;
+      --accent:  #7cfc9f;
+      --dim:     #555570;
+      --text:    #d8d8e8;
+      --muted:   #888899;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 3rem 3.5rem;
+      max-width: 560px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .logo {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 1.75rem;
+      display: block;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: #f0f0f8;
+      margin-bottom: 0.4rem;
+    }
+
+    .tagline {
+      font-size: 0.8rem;
+      color: var(--muted);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 2.5rem;
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 0 0 2rem;
+    }
+
+    .contact-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      margin-bottom: 0.9rem;
+      font-size: 0.85rem;
+    }
+
+    .contact-row .label {
+      color: var(--dim);
+      min-width: 3.5rem;
+      text-align: right;
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .contact-row a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .contact-row a:hover { text-decoration: underline; }
+
+    .fingerprint-block {
+      margin-top: 2rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1rem 1.2rem;
+      text-align: left;
+    }
+
+    .fingerprint-block .fp-label {
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-bottom: 0.5rem;
+    }
+
+    .fingerprint-block .fp {
+      font-size: 0.78rem;
+      color: var(--accent);
+      letter-spacing: 0.06em;
+      word-break: break-all;
+      line-height: 1.7;
+    }
+
+    footer {
+      margin-top: 2.5rem;
+      font-size: 0.7rem;
+      color: var(--dim);
+      letter-spacing: 0.06em;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+
+    <!-- Logo -->
+    <svg class="logo" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Strong Entropy logo">
+      <!-- Outer ring -->
+      <circle cx="40" cy="40" r="37" stroke="#1f1f2e" stroke-width="2"/>
+      <!-- Entropy dot grid — varying opacities suggest randomness -->
+      <g fill="#7cfc9f">
+        <!-- row 1 -->
+        <circle cx="24" cy="24" r="2.5" opacity="0.9"/>
+        <circle cx="33" cy="22" r="1.5" opacity="0.4"/>
+        <circle cx="40" cy="23" r="2"   opacity="0.7"/>
+        <circle cx="48" cy="22" r="1.5" opacity="0.2"/>
+        <circle cx="56" cy="24" r="2.5" opacity="0.6"/>
+        <!-- row 2 -->
+        <circle cx="22" cy="33" r="1.5" opacity="0.3"/>
+        <circle cx="30" cy="31" r="2"   opacity="0.8"/>
+        <circle cx="40" cy="32" r="1.5" opacity="0.5"/>
+        <circle cx="50" cy="31" r="2.5" opacity="0.9"/>
+        <circle cx="58" cy="33" r="1.5" opacity="0.4"/>
+        <!-- row 3 (center) -->
+        <circle cx="24" cy="40" r="2"   opacity="0.6"/>
+        <circle cx="32" cy="40" r="2.5" opacity="0.3"/>
+        <circle cx="40" cy="40" r="3"   opacity="1"/>
+        <circle cx="48" cy="40" r="2.5" opacity="0.5"/>
+        <circle cx="56" cy="40" r="2"   opacity="0.8"/>
+        <!-- row 4 -->
+        <circle cx="22" cy="47" r="1.5" opacity="0.7"/>
+        <circle cx="30" cy="49" r="2.5" opacity="0.2"/>
+        <circle cx="40" cy="48" r="2"   opacity="0.6"/>
+        <circle cx="50" cy="49" r="1.5" opacity="0.9"/>
+        <circle cx="58" cy="47" r="2"   opacity="0.3"/>
+        <!-- row 5 -->
+        <circle cx="24" cy="56" r="2.5" opacity="0.4"/>
+        <circle cx="33" cy="58" r="1.5" opacity="0.8"/>
+        <circle cx="40" cy="57" r="2"   opacity="0.3"/>
+        <circle cx="48" cy="58" r="2.5" opacity="0.7"/>
+        <circle cx="56" cy="56" r="1.5" opacity="0.5"/>
+      </g>
+    </svg>
+
+    <h1>Strong Entropy LLC</h1>
+    <p class="tagline">Security &middot; Technology &middot; Consulting</p>
+
+    <hr class="divider">
+
+    <div class="contact-row">
+      <span class="label">email</span>
+      <a href="mailto:info@strongentropy.com">info@strongentropy.com</a>
+    </div>
+
+    <div class="contact-row">
+      <span class="label">github</span>
+      <a href="https://github.com/strongentropy" target="_blank" rel="noopener">github.com/strongentropy</a>
+    </div>
+
+    <div class="fingerprint-block">
+      <div class="fp-label">PGP Public Key — Ed25519</div>
+      <div class="fp">3F1A A06D A8C5 8ACE F25B&nbsp; C882 3263 D1B8 7AAA FCD4</div>
+    </div>
+
+    <footer>Texas LLC &nbsp;&bull;&nbsp; strongentropy.com</footer>
+  </div>
+</body>
+</html>
