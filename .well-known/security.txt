@@ -1,5 +1,16 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
 Contact: mailto:info@strongentropy.com
 Expires: 2027-05-30T00:00:00.000Z
 Encryption: https://strongentropy.com/strongentropy.asc
 Preferred-Languages: en
 Canonical: https://strongentropy.com/.well-known/security.txt
+-----BEGIN PGP SIGNATURE-----
+
+iKkEARYKAFEWIQQ/GqBtqMWKzvJbyIIyY9G4eqr81AUCahtHYhsUgAAAAAAEAA5t
+YW51MiwyLjUrMS4xMiwwLDMXHGluZm9Ac3Ryb25nZW50cm9weS5jb20ACgkQMmPR
+uHqq/NSpTAD9H8yfsZU4Al6pgwYD8HGoY/TjJlvJ5+zefZBTvSXuekkBANxoHF0/
+xiA7L4yJEApA6Nqao3QTkVBwKq2ZlESejBQK
+=BO6Z
+-----END PGP SIGNATURE-----
