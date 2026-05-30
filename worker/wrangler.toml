@@ -5,7 +5,7 @@ compatibility_date = "2024-09-23"
 # After running `make kv-create`, paste the returned id below
 [[kv_namespaces]]
 binding = "VISITS"
-id = "REPLACE_WITH_KV_NAMESPACE_ID"
+id = "f1fd4c08080b4d83b5bbbc3420e7e0c9"
 
 [[routes]]
 pattern = "strongentropy.com/*"

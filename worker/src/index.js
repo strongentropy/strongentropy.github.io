@@ -1,7 +1,32 @@
+const SECURITY_HEADERS = {
+  'Strict-Transport-Security':   'max-age=31536000; includeSubDomains; preload',
+  'X-Content-Type-Options':      'nosniff',
+  'X-Frame-Options':             'DENY',
+  'Referrer-Policy':             'strict-origin-when-cross-origin',
+  'Permissions-Policy':          'camera=(), microphone=(), geolocation=(), payment=(), usb=()',
+  'Cross-Origin-Opener-Policy':  'same-origin',
+  'Content-Security-Policy':
+    "default-src 'self'; " +
+    "font-src 'self'; " +
+    "style-src 'self' 'unsafe-inline'; " +
+    "img-src 'self' data:; " +
+    "script-src 'none'; " +
+    "frame-ancestors 'none'; " +
+    "form-action 'none'; " +
+    "base-uri 'self'",
+};
+
+function applySecurityHeaders(response) {
+  const headers = new Headers(response.headers);
+  for (const [k, v] of Object.entries(SECURITY_HEADERS)) headers.set(k, v);
+  return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+}
+
 export default {
   async fetch(request, env, ctx) {
     ctx.waitUntil(logVisit(request, env));
-    return proxyToGitHubPages(request, env);
+    const response = await proxyToGitHubPages(request, env);
+    return applySecurityHeaders(response);
   },
 
   async scheduled(event, env, ctx) {
