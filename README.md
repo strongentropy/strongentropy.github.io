@@ -1,6 +1,6 @@
 # Strong Entropy LLC
 
-Security · Technology · Consulting
+Quantitative FinTech · Cybersecurity · Automation and Enablement
 
 **Website:** https://strongentropy.com  
 **Email:** info@strongentropy.com

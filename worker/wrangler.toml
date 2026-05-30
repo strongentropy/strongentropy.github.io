@@ -1,0 +1,23 @@
+name = "strongentropy-logger"
+main = "src/index.js"
+compatibility_date = "2024-09-23"
+
+# After running `make kv-create`, paste the returned id below
+[[kv_namespaces]]
+binding = "VISITS"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
+
+[[routes]]
+pattern = "strongentropy.com/*"
+zone_name = "strongentropy.com"
+
+[triggers]
+crons = ["0 6 * * *"]  # 06:00 UTC = midnight CT
+
+[vars]
+ORIGIN       = "https://strongentropy.github.io"
+GITHUB_REPO  = "strongentropy/logs"
+GITHUB_BRANCH = "main"
+
+# Secrets (set via `make secret`):
+#   GITHUB_TOKEN — fine-grained PAT with contents:write on strongentropy/logs
