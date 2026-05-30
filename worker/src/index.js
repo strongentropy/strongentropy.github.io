@@ -22,8 +22,33 @@ function applySecurityHeaders(response) {
   return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
 }
 
+const RATE_LIMIT = 60;      // max requests
+const RATE_WINDOW = 60;     // per N seconds
+
+function block(status, message) {
+  return new Response(message, {
+    status,
+    headers: { 'Content-Type': 'text/plain', ...SECURITY_HEADERS },
+  });
+}
+
+async function checkRateLimit(ip, env) {
+  const key = `rl:${ip}`;
+  const now = Math.floor(Date.now() / 1000);
+  const windowKey = `${key}:${Math.floor(now / RATE_WINDOW)}`;
+  const count = parseInt(await env.VISITS.get(windowKey) || '0') + 1;
+  await env.VISITS.put(windowKey, String(count), { expirationTtl: RATE_WINDOW * 2 });
+  return count > RATE_LIMIT;
+}
+
 export default {
   async fetch(request, env, ctx) {
+    const ua = request.headers.get('User-Agent');
+    if (!ua || ua.trim() === '') return block(403, 'Forbidden');
+
+    const ip = request.headers.get('CF-Connecting-IP') || '';
+    if (await checkRateLimit(ip, env)) return block(429, 'Too Many Requests');
+
     ctx.waitUntil(logVisit(request, env));
     const response = await proxyToGitHubPages(request, env);
     return applySecurityHeaders(response);
