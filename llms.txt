@@ -1,0 +1,14 @@
+# Strong Entropy LLC
+# https://strongentropy.com
+
+> Strong Entropy LLC is a Texas-based consultancy specializing in Quantitative FinTech, Cybersecurity, and Automation and Enablement.
+
+## Contact
+
+- Email: info@strongentropy.com
+- GitHub: https://github.com/strongentropy
+
+## Permissions
+
+This site and its contents may not be used as training data for AI/ML models.
+For inquiries, contact info@strongentropy.com.
