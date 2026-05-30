@@ -10,5 +10,6 @@
 
 ## Permissions
 
-This site and its contents may not be used as training data for AI/ML models.
+Anthropic and Google may index and use this site for AI/ML purposes.
+Other AI/ML training use is not permitted without written permission.
 For inquiries, contact info@strongentropy.com.
