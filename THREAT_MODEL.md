@@ -1,6 +1,6 @@
 # Threat Model — Strong Entropy
 
-Version: 1.1.0 | Last updated: 2026-05-31
+Version: 1.2.0 | Last updated: 2026-05-31
 
 > **Note:** This document covers system architecture, trust boundaries, attack surfaces, and mitigations. Residual risk assessments and open items are maintained in the private administration repository.
 
@@ -69,11 +69,15 @@ All inbound traffic passes through the Cloudflare Worker. There is no origin ser
 - **Log injection** — crafted headers (`User-Agent`, `Referer`, `CF-Connecting-IP`) containing malicious content stored in KV and later flushed to GitHub
 - **KV poisoning** — malformed log entries disrupting `flushToGitHub()` or `serveLogs()`
 - **Oversized payloads** — excessively large header values exhausting KV storage
+- **ReDoS via `parseOS()`** — crafted `User-Agent` triggering backtracking in OS-detection regexes
 
 **Mitigations:**
 - Log entries are stored as JSON (`JSON.stringify`) — structure is enforced on write
 - `JSON.parse` in `flushToGitHub` is wrapped in try-catch; corrupt entries are skipped
 - `ts` field validated against `YYYY-MM-DD` regex before use as a GitHub file path — prevents path traversal via malformed timestamps
+- `User-Agent` and `Referer` truncated to 512 chars before storage or parsing
+- `parseOS()` regexes are simple literal/prefix patterns with no quantifier nesting — ReDoS risk is low; confirmed by fuzzer
+- `cf.deviceType` sourced from Cloudflare runtime metadata — trusted, not attacker-controlled
 - Cloudflare Workers enforce header size limits at the platform level
 
 ---
@@ -120,6 +124,7 @@ All inbound traffic passes through the Cloudflare Worker. There is no origin ser
 | `serveLogs()` GitHub → browser | Data exposure, content-type confusion | Auth gate, content-type check, CORS |
 | `buildGraph()` / `escHtml()` | XSS | `escHtml()`, strict CSP |
 | `parseUA()` | ReDoS | Simple regexes, fuzz-verified |
+| `parseOS()` | ReDoS | Simple regexes, fuzz-verified |
 
 ---
 
