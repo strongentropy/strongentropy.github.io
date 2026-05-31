@@ -18,6 +18,14 @@ We will acknowledge receipt within 48 hours and aim to resolve confirmed vulnera
 
 This policy covers strongentropy.com and all repositories under the [@strongentropy](https://github.com/strongentropy) GitHub organization.
 
+## Vulnerability Exploitability eXchange (VEX)
+
+Known vulnerabilities in dependencies that do not affect this project are documented in OpenVEX format in the `vex/` directory and attached as `vex.openvex.json` to each GitHub release alongside the SBOM.
+
+VEX documents are generated automatically by the release workflow using `npm audit`. If vulnerabilities are found at release time, the VEX document will carry `status: under_investigation` until each vulnerability is assessed and resolved or marked non-exploitable with justification.
+
+The current release VEX document is at [`vex/v1.0.0.openvex.json`](./vex/v1.0.0.openvex.json).
+
 ## Threat Model
 
 A threat model and attack surface analysis covering critical code paths, trust boundaries, and mitigations is maintained in [THREAT_MODEL.md](./THREAT_MODEL.md).

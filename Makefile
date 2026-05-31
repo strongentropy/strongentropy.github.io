@@ -99,6 +99,8 @@ release:
 	@echo "  1. Update README.md release support table (mark previous release EOL)"
 	@echo "  2. Ensure all CI checks pass on main"
 	@echo "  3. Run: make test"
+	@echo "  4. Review npm audit output: cd worker && npm audit"
+	@echo "     If vulnerabilities exist, update vex/ before tagging"
 	@echo ""
 	@echo "When ready, run:"
 	@echo "  git tag -s $(VERSION) -m '$(VERSION) — <summary>'"

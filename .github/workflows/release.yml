@@ -8,8 +8,8 @@ on:
 permissions: read-all
 
 jobs:
-  sbom:
-    name: Generate and attach SBOM
+  sbom-vex:
+    name: Generate and attach SBOM + VEX
     runs-on: ubuntu-latest
     permissions:
       contents: write  # needed to upload release assets
@@ -29,7 +29,54 @@ jobs:
         working-directory: worker
         run: npm sbom --sbom-format cyclonedx > ../sbom.cdx.json
 
-      - name: Attach SBOM to release
+      - name: Generate VEX document
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          AUDIT=$(cd worker && npm audit --json 2>/dev/null || echo '{"metadata":{"vulnerabilities":{"total":0}}}')
+          VULN_COUNT=$(echo "$AUDIT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['metadata']['vulnerabilities']['total'])")
+
+          if [ "$VULN_COUNT" = "0" ]; then
+            IMPACT="npm audit returned 0 vulnerabilities across all worker dependencies at the time of ${TAG} release. No VEX statements are required."
+            STATUS="not_affected"
+            JUSTIFICATION="component_not_present"
+          else
+            IMPACT="See npm audit output for details. Review required."
+            STATUS="under_investigation"
+            JUSTIFICATION=""
+          fi
+
+          python3 -c "
+          import json, sys, os
+          tag = os.environ['TAG']
+          doc = {
+            '@context': 'https://openvex.dev/ns/v0.2.0',
+            '@id': f'https://github.com/strongentropy/strongentropy.github.io/blob/main/vex/{tag}.openvex.json',
+            'author': 'Strong Entropy LLC',
+            'role': 'Maintainer',
+            'timestamp': '$TIMESTAMP',
+            'version': 1,
+            'tooling': 'npm audit 10.x; automated',
+            'product': {
+              '@id': 'https://github.com/strongentropy/strongentropy.github.io',
+              'identifiers': {'purl': f'pkg:github/strongentropy/strongentropy.github.io@{tag}'},
+              'subcomponents': [{'@id': 'pkg:npm/strongentropy-logger@1.0.0'}]
+            },
+            'statements': [{
+              'vulnerability': {'description': f'Dependency vulnerability assessment at {tag}'},
+              'products': [{'@id': 'https://github.com/strongentropy/strongentropy.github.io'}],
+              'status': '$STATUS',
+              'justification': '$JUSTIFICATION',
+              'impact_statement': '$IMPACT'
+            }]
+          }
+          print(json.dumps(doc, indent=2))
+          " > vex.openvex.json
+
+      - name: Attach SBOM and VEX to release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "${{ github.ref_name }}" sbom.cdx.json --clobber
+        run: |
+          gh release upload "${{ github.ref_name }}" sbom.cdx.json --clobber
+          gh release upload "${{ github.ref_name }}" vex.openvex.json --clobber

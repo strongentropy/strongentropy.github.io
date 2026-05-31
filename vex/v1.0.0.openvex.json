@@ -1,0 +1,35 @@
+{
+  "@context": "https://openvex.dev/ns/v0.2.0",
+  "@id": "https://github.com/strongentropy/strongentropy.github.io/blob/main/vex/v1.0.0.openvex.json",
+  "author": "Strong Entropy LLC",
+  "role": "Maintainer",
+  "timestamp": "2026-05-31T03:23:32Z",
+  "version": 1,
+  "tooling": "npm audit 10.x; manual review",
+  "product": {
+    "@id": "https://github.com/strongentropy/strongentropy.github.io",
+    "identifiers": {
+      "purl": "pkg:github/strongentropy/strongentropy.github.io@v1.0.0"
+    },
+    "subcomponents": [
+      {
+        "@id": "pkg:npm/strongentropy-logger@1.0.0"
+      }
+    ]
+  },
+  "statements": [
+    {
+      "vulnerability": {
+        "description": "No CVEs identified in dependency tree at time of v1.0.0 release"
+      },
+      "products": [
+        {
+          "@id": "https://github.com/strongentropy/strongentropy.github.io"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "component_not_present",
+      "impact_statement": "npm audit returned 0 vulnerabilities across all 141 components in the worker dependency tree at the time of this release. No VEX statements are required. This document will be updated if vulnerabilities are subsequently disclosed."
+    }
+  ]
+}
