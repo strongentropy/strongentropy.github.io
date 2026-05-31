@@ -74,7 +74,7 @@ Pull requests and direct pushes that introduce major functionality without accom
 
 ### Exception: non-author human approval (OSPS-QA-07.01)
 
-This project has a single human maintainer. OSPS-QA-07.01 requires at least one non-author **human** approval before merging to the primary branch — AI-assisted review does not satisfy this requirement. Compensating controls in place:
+This project has a single human maintainer. OSPS-QA-07.01 requires at least one non-author **human** approval before merging to the primary branch — the reviewer is AI and therefore does not satisfy this requirement. Compensating controls in place:
 
 - All commits are GPG-signed by the maintainer
 - Branch protection blocks force-push and branch deletion
