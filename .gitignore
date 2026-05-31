@@ -4,3 +4,4 @@
 .env.local
 worker/fuzz/crashes/
 worker/node_modules/
+sbom.cdx.json

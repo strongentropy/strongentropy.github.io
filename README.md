@@ -85,6 +85,14 @@ git log --show-signature v1.0.0 -1
 
 Each release on the [Releases page](https://github.com/strongentropy/strongentropy.github.io/releases) lists the signing key fingerprint in the release notes.
 
+### Software Bill of Materials
+
+Each release includes a CycloneDX SBOM (`sbom.cdx.json`) attached as a release asset, listing all transitive dependencies of the Cloudflare Worker. To inspect it:
+
+```bash
+curl -sL https://github.com/strongentropy/strongentropy.github.io/releases/download/v1.0.0/sbom.cdx.json | python3 -m json.tool | less
+```
+
 ### Verifying signer identity
 
 A valid signature alone is not sufficient — you should also confirm the signing key belongs to Strong Entropy LLC. Cross-reference using at least one independent source:
