@@ -37,6 +37,11 @@
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    html {
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
+
     :root {
       --bg:      #0c0c0e;
       --surface: #13131a;
@@ -48,8 +53,6 @@
     }
 
     body {
-      -webkit-text-size-adjust: 100%;
-      text-size-adjust: 100%;
       background: var(--bg);
       color: var(--text);
       font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
