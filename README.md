@@ -32,3 +32,35 @@ To verify fingerprint after import:
 ```bash
 gpg --fingerprint info@strongentropy.com
 ```
+
+---
+
+## Verifying Releases
+
+All releases are tagged with a GPG-signed git tag using the key above.
+
+**1. Import the public key** (see above), then:
+
+**2. Verify the tag signature:**
+```bash
+git clone https://github.com/strongentropy/strongentropy.github.io.git
+cd strongentropy.github.io
+git tag -v v1.0.0
+```
+
+Expected output includes:
+```
+gpg: Good signature from "Strong Entropy LLC <info@strongentropy.com>"
+```
+
+**3. Verify the tag fingerprint matches:**
+```
+3F1A A06D A8C5 8ACE F25B  C882 3263 D1B8 7AAA FCD4
+```
+
+**4. Verify the release commit:**
+```bash
+git log --show-signature v1.0.0 -1
+```
+
+Each release on the [Releases page](https://github.com/strongentropy/strongentropy.github.io/releases) lists the signing key fingerprint in the release notes.
