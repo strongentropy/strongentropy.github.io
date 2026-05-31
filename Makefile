@@ -1,4 +1,4 @@
-.PHONY: help deploy deploy-site deploy-worker test test-headers test-auth test-flush open graph flush hooks release
+.PHONY: help deploy deploy-site deploy-worker test test-headers test-auth test-flush open graph flush hooks release release-check
 
 help:
 	@echo "Strong Entropy — available targets:"
@@ -14,7 +14,8 @@ help:
 	@echo ""
 	@echo "  flush           Trigger on-demand KV → GitHub log flush"
 	@echo "  hooks           Install git pre-commit hooks"
-	@echo "  release         Release checklist + tag instructions (VERSION=vX.Y.Z)"
+	@echo "  release-check   Verify all docs reference VERSION, then show checklist
+	@echo "  release         Alias for release-check (VERSION=vX.Y.Z)"
 	@echo ""
 	@echo "  open            Open strongentropy.com in browser"
 	@echo "  graph           Open /graph/ in browser"
@@ -93,18 +94,36 @@ graph:
 
 # ── Release ───────────────────────────────────────────────────────────────────
 
-release:
-	@[ -n "$(VERSION)" ] || (echo "Usage: make release VERSION=v1.x.x" && exit 1)
-	@echo "Checklist before tagging $(VERSION):"
-	@echo "  1. Update README.md release support table (mark previous release EOL)"
-	@echo "  2. Ensure all CI checks pass on main"
-	@echo "  3. Run: make test"
-	@echo "  4. Review pnpm audit output: cd worker && pnpm audit"
+release-check:
+	@[ -n "$(VERSION)" ] || (echo "Usage: make release-check VERSION=v1.x.x" && exit 1)
+	@V=$(VERSION); V=$${V#v}; FAIL=0; \
+	check() { \
+	  if grep -q "$$2" "$$1"; then \
+	    echo "PASS  $$1 references $$2"; \
+	  else \
+	    echo "FAIL  $$1 missing reference to $$2"; \
+	    FAIL=1; \
+	  fi; \
+	}; \
+	check worker/package.json "\"version\": \"$$V\""; \
+	check README.md "v$$V"; \
+	check SECURITY.md "v$$V"; \
+	check THREAT_MODEL.md "$$V"; \
+	[ $$FAIL -eq 0 ] || (echo "" && echo "Fix the above before tagging." && exit 1)
+	@echo ""
+	@echo "All version references OK. Checklist before tagging $(VERSION):"
+	@echo "  1. Ensure all CI checks pass on main"
+	@echo "  2. Run: make test"
+	@echo "  3. Review pnpm audit: cd worker && pnpm audit"
 	@echo "     If vulnerabilities exist, update vex/ before tagging"
-	@echo "  5. Review dependency licenses: cd worker && pnpm licenses list (or pnpm dlx license-checker)"
+	@echo "  4. Review dependency licenses: cd worker && pnpm licenses list"
 	@echo "     Ensure no GPL/AGPL/proprietary licenses introduced"
 	@echo ""
 	@echo "When ready, run:"
 	@echo "  git tag -s $(VERSION) -m '$(VERSION) — <summary>'"
 	@echo "  git push origin $(VERSION)"
 	@echo "  gh release create $(VERSION) --title '$(VERSION)' --notes '<notes>' --latest"
+
+release:
+	@[ -n "$(VERSION)" ] || (echo "Usage: make release VERSION=v1.x.x" && exit 1)
+	@$(MAKE) release-check VERSION=$(VERSION)
