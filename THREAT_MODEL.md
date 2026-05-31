@@ -1,6 +1,6 @@
 # Threat Model — Strong Entropy
 
-Version: 1.0.0 | Last updated: 2026-05-30
+Version: 1.1.0 | Last updated: 2026-05-31
 
 > **Note:** This document covers system architecture, trust boundaries, attack surfaces, and mitigations. Residual risk assessments and open items are maintained in the private administration repository.
 

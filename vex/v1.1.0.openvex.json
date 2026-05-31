@@ -1,0 +1,35 @@
+{
+  "@context": "https://openvex.dev/ns/v0.2.0",
+  "@id": "https://github.com/strongentropy/strongentropy.github.io/blob/main/vex/v1.1.0.openvex.json",
+  "author": "Strong Entropy LLC",
+  "role": "Maintainer",
+  "timestamp": "2026-05-31T04:13:01Z",
+  "version": 1,
+  "tooling": "pnpm audit 9.x; automated",
+  "product": {
+    "@id": "https://github.com/strongentropy/strongentropy.github.io",
+    "identifiers": {
+      "purl": "pkg:github/strongentropy/strongentropy.github.io@v1.1.0"
+    },
+    "subcomponents": [
+      {
+        "@id": "pkg:npm/strongentropy-logger@1.1.0"
+      }
+    ]
+  },
+  "statements": [
+    {
+      "vulnerability": {
+        "description": "Dependency vulnerability assessment at v1.1.0"
+      },
+      "products": [
+        {
+          "@id": "https://github.com/strongentropy/strongentropy.github.io"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "component_not_present",
+      "impact_statement": "pnpm audit returned 0 vulnerabilities across all worker dependencies at the time of v1.1.0 release. No VEX statements are required."
+    }
+  ]
+}
