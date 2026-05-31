@@ -33,7 +33,7 @@ jobs:
 
       - name: Generate CycloneDX SBOM
         working-directory: worker
-        run: pnpm dlx @cyclonedx/cyclonedx-npm --output-format JSON --output-file ../sbom.cdx.json
+        run: pnpm dlx @cyclonedx/cdxgen -t nodejs --spec-version 1.4 -o ../sbom.cdx.json .
 
       - name: Generate VEX document
         env:
