@@ -2,6 +2,8 @@
 
 Version: 1.0.0 | Last updated: 2026-05-30
 
+> **Note:** This document covers system architecture, trust boundaries, attack surfaces, and mitigations. Residual risk assessments and open items are maintained in the private administration repository.
+
 ## System overview
 
 ```
@@ -45,8 +47,6 @@ All inbound traffic passes through the Cloudflare Worker. There is no origin ser
 - `atob()` decode wrapped in try-catch; any malformed base64 returns 401
 - CORS `Origin` header checked against `https://strongentropy.com` on `/api/logs`
 
-**Residual risk:** Rate limit applies per IP; distributed brute force across many IPs is not mitigated beyond Cloudflare's platform-level protections.
-
 ---
 
 ### 2. `/flush` — Token-authenticated admin endpoint
@@ -60,8 +60,6 @@ All inbound traffic passes through the Cloudflare Worker. There is no origin ser
 - `timingSafeEqual()` for token comparison
 - Token is 48 hex characters (192 bits of entropy) — brute force infeasible
 - Cloudflare rate limiting applies to all paths including `/flush`
-
-**Residual risk:** Token transmitted in URL query string — appears in Cloudflare access logs. Mitigated by: logs are private, token can be rotated per secrets policy.
 
 ---
 
@@ -78,8 +76,6 @@ All inbound traffic passes through the Cloudflare Worker. There is no origin ser
 - `ts` field validated against `YYYY-MM-DD` regex before use as a GitHub file path — prevents path traversal via malformed timestamps
 - Cloudflare Workers enforce header size limits at the platform level
 
-**Residual risk:** No explicit length cap on individual header values within Worker code. A crafted oversized `User-Agent` is stored verbatim in KV up to platform limits.
-
 ---
 
 ### 4. `serveLogs()` / `flushToGitHub()` — GitHub API interaction
@@ -95,8 +91,6 @@ All inbound traffic passes through the Cloudflare Worker. There is no origin ser
 - Fine-grained PAT scoped to single private repo with contents write only — compromise cannot affect other repos or org settings
 - `days` parameter validated: `Math.min(Math.max(parseInt(...) || 30, 1), 365)` — NaN and out-of-range values handled
 
-**Residual risk:** Log content is attacker-influenced (headers, paths). If graph.js rendering introduced an XSS vector, stored log data would be the injection point. Current rendering uses `escHtml()` throughout and strict CSP (`script-src 'self'`).
-
 ---
 
 ### 5. `/graph/` client-side rendering — D3 force graph
@@ -111,8 +105,6 @@ All inbound traffic passes through the Cloudflare Worker. There is no origin ser
 - CSP: `script-src 'self'` — inline scripts and external sources blocked
 - `parseUA()` regexes are simple prefix/substring patterns with no quantifier nesting — ReDoS risk is low; confirmed by fuzzer (200k+ runs, no hangs)
 - JSON parsed via native `JSON.parse` — not susceptible to prototype pollution in V8
-
-**Residual risk:** `data-id` attribute used for click-to-focus uses `escHtml()` but is read back via `el.dataset.id` into `applyFocus()`. Node ID format is constrained to `type:value` with hardcoded type prefixes — no free-form attacker input reaches this path without passing through `buildGraph()` first.
 
 ---
 
