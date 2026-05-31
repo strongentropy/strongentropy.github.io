@@ -18,6 +18,10 @@ We will acknowledge receipt within 48 hours and aim to resolve confirmed vulnera
 
 This policy covers strongentropy.com and all repositories under the [@strongentropy](https://github.com/strongentropy) GitHub organization.
 
+## Threat Model
+
+A threat model and attack surface analysis covering critical code paths, trust boundaries, and mitigations is maintained in [THREAT_MODEL.md](./THREAT_MODEL.md).
+
 ## Collaborator Access Policy
 
 Strong Entropy LLC is a single-maintainer project. No external collaborators are granted write or admin access to this repository or its associated infrastructure.
