@@ -15,7 +15,7 @@ jobs:
     name: Generate and attach SBOM + VEX
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # needed to upload release assets and commit VEX
+      contents: write  # needed to upload release assets
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -84,16 +84,6 @@ jobs:
           }
           print(json.dumps(doc, indent=2))
           " > vex/${{ github.ref_name }}.openvex.json
-
-      - name: Commit VEX to repository
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git fetch origin main
-          git checkout main
-          git add vex/${{ github.ref_name }}.openvex.json
-          git diff --staged --quiet || git commit -m "docs: add VEX document for ${{ github.ref_name }} [skip ci]"
-          git push origin main
 
       - name: Attach SBOM and VEX to release
         env:

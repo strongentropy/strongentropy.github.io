@@ -123,6 +123,12 @@ release-check:
 	@echo "  git tag -s $(VERSION) -m '$(VERSION) — <summary>'"
 	@echo "  git push origin $(VERSION)"
 	@echo "  gh release create $(VERSION) --title '$(VERSION)' --notes '<notes>' --latest"
+	@echo ""
+	@echo "After the Release workflow completes, commit the VEX:"
+	@echo "  gh release download $(VERSION) --pattern '*.openvex.json' --dir vex/"
+	@echo "  git add vex/$(VERSION).openvex.json"
+	@echo "  git commit -S -m 'docs: add VEX document for $(VERSION)'"
+	@echo "  git push origin main"
 
 release:
 	@[ -n "$(VERSION)" ] || (echo "Usage: make release VERSION=v1.x.x" && exit 1)
