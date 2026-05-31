@@ -72,6 +72,15 @@ All major changes to the Worker or graph code MUST include corresponding test co
 
 Pull requests and direct pushes that introduce major functionality without accompanying tests will not be merged. Minor changes (documentation, styling, configuration) are exempt.
 
+### Exception: non-author human approval (OSPS-QA-07.01)
+
+This project has a single human maintainer. OSPS-QA-07.01 requires at least one non-author **human** approval before merging to the primary branch — AI-assisted review does not satisfy this requirement. Compensating controls in place:
+
+- All commits are GPG-signed by the maintainer
+- Branch protection blocks force-push and branch deletion
+- Required CI status checks (CodeQL, fuzzing, npm audit) must pass before merge
+- gitleaks pre-commit hook scans every staged commit for secret exposure
+
 ---
 
 ## Release Support Policy
