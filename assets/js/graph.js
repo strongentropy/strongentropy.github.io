@@ -223,6 +223,7 @@
       .data(nodes.filter(d => d.count >= 3 || d.type === 'country'), d => d.id)
       .join('text')
         .attr('dy', d => nodeRadius(d) + 10)
+        .attr('fill', '#d8d8e8')
         .text(d => d.label.length > 20 ? d.label.slice(0, 18) + '…' : d.label)
         .style('opacity', 0.65);
 
