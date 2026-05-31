@@ -61,6 +61,17 @@ make test-flush    # verify /flush endpoint responds with {ok: true}
 
 These tests run against `https://strongentropy.com` and should be run after any worker deployment (`make deploy-worker`).
 
+### Test update policy
+
+All major changes to the Worker or graph code MUST include corresponding test coverage:
+
+- **New input-processing functions** — add a jazzer.js fuzz target in `worker/fuzz/`
+- **New API endpoints or auth paths** — add a `make test-*` smoke test and wire it into `make test`
+- **Changes to existing fuzzed functions** — update the corresponding fuzz target to reflect new behaviour and add corpus seeds for new code paths
+- **Security-relevant changes** — verify CodeQL and Scorecard continue to pass with no new findings
+
+Pull requests and direct pushes that introduce major functionality without accompanying tests will not be merged. Minor changes (documentation, styling, configuration) are exempt.
+
 ---
 
 ## Release Support Policy
