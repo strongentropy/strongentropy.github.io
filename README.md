@@ -55,13 +55,13 @@ git clone https://github.com/strongentropy/strongentropy.github.io.git
 cd strongentropy.github.io
 
 # 1. Import the public key (see above), then verify the tag
-git tag -v v1.0.0
+git tag -v v1.1.0
 
 # Expected output includes:
 # gpg: Good signature from "Strong Entropy LLC <info@strongentropy.com>"
 
 # 2. Verify the release commit
-git log --show-signature v1.0.0 -1
+git log --show-signature v1.1.0 -1
 ```
 
 Each release on the [Releases page](https://github.com/strongentropy/strongentropy.github.io/releases) lists the signing key fingerprint in the release notes.
@@ -93,11 +93,11 @@ Each release includes a CycloneDX SBOM (`sbom.cdx.json`) and an OpenVEX document
 
 ```bash
 # Inspect the SBOM
-curl -sL https://github.com/strongentropy/strongentropy.github.io/releases/download/v1.0.0/sbom.cdx.json \
+curl -sL https://github.com/strongentropy/strongentropy.github.io/releases/download/v1.1.0/sbom.cdx.json \
   | python3 -m json.tool | less
 
 # Inspect the VEX document
-curl -sL https://github.com/strongentropy/strongentropy.github.io/releases/download/v1.0.0/v1.0.0.openvex.json \
+curl -sL https://github.com/strongentropy/strongentropy.github.io/releases/download/v1.1.0/v1.1.0.openvex.json \
   | python3 -m json.tool | less
 ```
 
