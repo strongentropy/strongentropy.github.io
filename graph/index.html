@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Graph — Strong Entropy</title>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; font-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; script-src 'self'; connect-src 'self'; frame-ancestors 'none'; form-action 'none'; base-uri 'self'">
+  <meta name="robots" content="noindex, nofollow">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #0c0c0e;
+      --surface: #13131a;
+      --border:  #1f1f2e;
+      --accent:  #7cfc9f;
+      --dim:     #555570;
+      --text:    #d8d8e8;
+      --muted:   #888899;
+      --panel-w: 300px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Top bar ── */
+    #topbar {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.6rem 1rem;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+
+    #topbar .title {
+      font-size: 0.75rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      white-space: nowrap;
+    }
+
+    #search {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.75rem;
+      padding: 0.3rem 0.6rem;
+      width: 180px;
+      outline: none;
+    }
+    #search:focus { border-color: var(--accent); }
+    #search::placeholder { color: var(--dim); }
+
+    #days-select {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.72rem;
+      padding: 0.3rem 0.5rem;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .filter-btn {
+      font-family: inherit;
+      font-size: 0.65rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 0.25rem 0.55rem;
+      border-radius: 3px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      background: transparent;
+      transition: opacity 0.15s;
+    }
+    .filter-btn.active { opacity: 1; }
+    .filter-btn.inactive { opacity: 0.3; }
+
+    #status {
+      margin-left: auto;
+      font-size: 0.68rem;
+      color: var(--dim);
+      white-space: nowrap;
+    }
+
+    /* ── Canvas area ── */
+    #canvas-wrap {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+
+    svg#graph {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .link {
+      stroke: #2a2a3a;
+      stroke-opacity: 0.8;
+    }
+
+    .node circle {
+      cursor: pointer;
+      stroke-width: 1.5;
+      transition: opacity 0.2s;
+    }
+
+    .node text {
+      pointer-events: none;
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 9px;
+      fill: var(--text);
+      text-anchor: middle;
+      dominant-baseline: central;
+    }
+
+    /* ── Tooltip ── */
+    #tooltip {
+      position: absolute;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.72rem;
+      color: var(--text);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.1s;
+      max-width: 260px;
+      z-index: 10;
+    }
+    #tooltip.visible { opacity: 1; }
+    #tooltip .tt-type { color: var(--dim); font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.2rem; }
+    #tooltip .tt-value { color: var(--accent); word-break: break-all; }
+    #tooltip .tt-count { color: var(--muted); margin-top: 0.2rem; font-size: 0.65rem; }
+
+    /* ── Detail panel ── */
+    #panel {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: var(--panel-w);
+      height: 100%;
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      transform: translateX(100%);
+      transition: transform 0.25s ease;
+      overflow-y: auto;
+      z-index: 5;
+      padding: 1rem;
+    }
+    #panel.open { transform: translateX(0); }
+
+    #panel-close {
+      float: right;
+      background: none;
+      border: none;
+      color: var(--dim);
+      cursor: pointer;
+      font-size: 1rem;
+      line-height: 1;
+      padding: 0;
+    }
+    #panel-close:hover { color: var(--text); }
+
+    #panel h2 {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--dim);
+      margin-bottom: 0.3rem;
+      clear: right;
+    }
+    #panel .panel-value {
+      font-size: 0.82rem;
+      color: var(--accent);
+      word-break: break-all;
+      margin-bottom: 1rem;
+    }
+    #panel .panel-section { margin-top: 1rem; }
+    #panel .panel-section h3 {
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--dim);
+      border-top: 1px solid var(--border);
+      padding-top: 0.6rem;
+      margin-bottom: 0.4rem;
+    }
+    #panel .conn-item {
+      display: flex;
+      gap: 0.4rem;
+      align-items: baseline;
+      margin-bottom: 0.3rem;
+      font-size: 0.72rem;
+      cursor: pointer;
+    }
+    #panel .conn-item:hover .conn-label { color: var(--accent); }
+    #panel .conn-type {
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--dim);
+      min-width: 3rem;
+    }
+    #panel .conn-label { color: var(--text); word-break: break-all; }
+
+    /* ── Loading overlay ── */
+    #loading {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 0.75rem;
+      background: var(--bg);
+      z-index: 20;
+    }
+    #loading.hidden { display: none; }
+    #loading .spin {
+      width: 32px;
+      height: 32px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #loading p { font-size: 0.72rem; color: var(--dim); }
+
+    /* ── Empty state ── */
+    #empty {
+      position: absolute;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 0.5rem;
+      color: var(--dim);
+      font-size: 0.8rem;
+    }
+    #empty.visible { display: flex; }
+  </style>
+</head>
+<body>
+
+<div id="topbar">
+  <span class="title">&#x25A0; Strong Entropy / Graph</span>
+  <input id="search" type="text" placeholder="Search nodes…" autocomplete="off" spellcheck="false">
+  <select id="days-select">
+    <option value="7">Last 7 days</option>
+    <option value="30" selected>Last 30 days</option>
+    <option value="90">Last 90 days</option>
+    <option value="365">Last year</option>
+  </select>
+  <div id="filters"></div>
+  <span id="status">Loading…</span>
+</div>
+
+<div id="canvas-wrap">
+  <svg id="graph"></svg>
+
+  <div id="tooltip">
+    <div class="tt-type" id="tt-type"></div>
+    <div class="tt-value" id="tt-value"></div>
+    <div class="tt-count" id="tt-count"></div>
+  </div>
+
+  <div id="panel">
+    <button id="panel-close">✕</button>
+    <div id="panel-content"></div>
+  </div>
+
+  <div id="loading">
+    <div class="spin"></div>
+    <p id="loading-msg">Fetching logs…</p>
+  </div>
+
+  <div id="empty">No log data found for this period.</div>
+</div>
+
+<script src="/assets/js/d3.min.js"></script>
+<script src="/assets/js/graph.js"></script>
+</body>
+</html>
