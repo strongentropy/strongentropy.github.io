@@ -1,4 +1,22 @@
-.PHONY: deploy deploy-site deploy-worker test test-headers test-auth test-flush open graph flush hooks
+.PHONY: help deploy deploy-site deploy-worker test test-headers test-auth test-flush open graph flush hooks
+
+help:
+	@echo "Strong Entropy — available targets:"
+	@echo ""
+	@echo "  deploy          Push site + deploy worker"
+	@echo "  deploy-site     git push (GitHub Pages)"
+	@echo "  deploy-worker   Deploy Cloudflare Worker"
+	@echo ""
+	@echo "  test            Run all smoke tests"
+	@echo "  test-headers    Check security headers"
+	@echo "  test-auth       Check /graph and /api/logs auth gates"
+	@echo "  test-flush      Check /flush endpoint"
+	@echo ""
+	@echo "  flush           Trigger on-demand KV → GitHub log flush"
+	@echo "  hooks           Install git pre-commit hooks"
+	@echo ""
+	@echo "  open            Open strongentropy.com in browser"
+	@echo "  graph           Open /graph/ in browser"
 
 SITE_URL   = https://strongentropy.com
 GRAPH_USER = admin
