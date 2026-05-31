@@ -18,6 +18,20 @@ We will acknowledge receipt within 48 hours and aim to resolve confirmed vulnera
 
 This policy covers strongentropy.com and all repositories under the [@strongentropy](https://github.com/strongentropy) GitHub organization.
 
+## SAST Remediation Policy
+
+Static Application Security Testing (SAST) is performed by CodeQL on every push to `main`, every pull request, and weekly. Results are published to the GitHub Security tab.
+
+| Severity | Remediation deadline |
+|---|---|
+| Critical / High | Must be resolved before the next commit to `main` — CodeQL is a required status check |
+| Medium | Within 14 days |
+| Low / Informational | Within 90 days, or dismissed with documented justification |
+
+Findings confirmed to be false positives or non-exploitable in this project's context may be dismissed in the GitHub Security tab with a written justification. Dismissed findings are reviewed at each release to confirm the justification remains valid.
+
+The CI CodeQL gate (`codeql.yml`) is a required branch protection status check — any new high or critical finding will fail the check and block merge until resolved or formally dismissed.
+
 ## SCA Remediation Policy
 
 ### Vulnerability thresholds
