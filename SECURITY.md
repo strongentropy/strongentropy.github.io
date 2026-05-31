@@ -18,6 +18,33 @@ We will acknowledge receipt within 48 hours and aim to resolve confirmed vulnera
 
 This policy covers strongentropy.com and all repositories under the [@strongentropy](https://github.com/strongentropy) GitHub organization.
 
+## SCA Remediation Policy
+
+### Vulnerability thresholds
+
+Software Composition Analysis (SCA) is performed continuously via `npm audit` (CI on every push and weekly) and at release time via the VEX document.
+
+| Severity | Remediation deadline |
+|---|---|
+| Critical | Within 48 hours of disclosure — patch or remove dependency |
+| High | Within 7 days |
+| Moderate | Within 30 days |
+| Low / Informational | Next scheduled release, or 90 days |
+
+Vulnerabilities confirmed non-exploitable in this project's context (e.g. a server-side vuln in a browser-only dependency) are documented in the VEX document with justification and exempt from the above deadlines.
+
+The CI audit gate (`npm audit --audit-level=moderate`) will fail the build for moderate and above, blocking deployment until resolved.
+
+### License thresholds
+
+Dependencies must be compatible with this project's dual-license (MIT code / All Rights Reserved content). Acceptable dependency licenses:
+
+- **Permitted:** MIT, ISC, BSD-2-Clause, BSD-3-Clause, Apache-2.0, CC0-1.0, Unlicense
+- **Review required:** LGPL (any version), MPL-2.0, CC-BY-*
+- **Prohibited:** GPL, AGPL, SSPL, proprietary/commercial-only, or any license with copyleft terms that would require source disclosure of this project's code
+
+License compliance is reviewed manually at each release as part of the `make release` checklist. Any dependency introducing a prohibited license must be removed or replaced before the release tag is created.
+
 ## Vulnerability Exploitability eXchange (VEX)
 
 Known vulnerabilities in dependencies that do not affect this project are documented in OpenVEX format in the `vex/` directory and attached as `vex.openvex.json` to each GitHub release alongside the SBOM.

@@ -101,6 +101,8 @@ release:
 	@echo "  3. Run: make test"
 	@echo "  4. Review npm audit output: cd worker && npm audit"
 	@echo "     If vulnerabilities exist, update vex/ before tagging"
+	@echo "  5. Review dependency licenses: cd worker && npm licenses list (or npx license-checker)"
+	@echo "     Ensure no GPL/AGPL/proprietary licenses introduced"
 	@echo ""
 	@echo "When ready, run:"
 	@echo "  git tag -s $(VERSION) -m '$(VERSION) — <summary>'"
