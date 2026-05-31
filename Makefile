@@ -107,4 +107,4 @@ release:
 	@echo "When ready, run:"
 	@echo "  git tag -s $(VERSION) -m '$(VERSION) — <summary>'"
 	@echo "  git push origin $(VERSION)"
-	@echo "  gh release create $(VERSION) --title '$(VERSION)' --notes '<notes>'"
+	@echo "  gh release create $(VERSION) --title '$(VERSION)' --notes '<notes>' --latest"
