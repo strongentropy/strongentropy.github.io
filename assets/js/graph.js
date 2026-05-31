@@ -192,9 +192,11 @@
 
     if (nodes.length === 0) {
       document.getElementById('empty').classList.add('visible');
+      document.getElementById('btn-fit').classList.add('hidden');
       return;
     }
     document.getElementById('empty').classList.remove('visible');
+    document.getElementById('btn-fit').classList.remove('hidden');
 
     const g = svg.append('g');
 
@@ -320,8 +322,8 @@
 
     let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
     nodes.forEach(n => {
+      if (n.x == null || isNaN(n.x) || n.y == null || isNaN(n.y)) return;
       const r = nodeRadius(n);
-      if (n.x == null) return;
       x0 = Math.min(x0, n.x - r);
       y0 = Math.min(y0, n.y - r);
       x1 = Math.max(x1, n.x + r);
@@ -330,7 +332,8 @@
 
     if (!isFinite(x0)) return;
 
-    const dx = x1 - x0, dy = y1 - y0;
+    const dx = x1 - x0 || 1;
+    const dy = y1 - y0 || 1;
     const k = Math.min((W - pad * 2) / dx, (H - pad * 2) / dy, 4);
     const tx = (W - k * (x0 + x1)) / 2;
     const ty = (H - k * (y0 + y1)) / 2;

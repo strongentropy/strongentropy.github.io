@@ -249,7 +249,7 @@
     #btn-fit {
       position: absolute;
       bottom: 1.25rem;
-      right: 1.25rem;
+      left: 1.25rem;
       width: 36px;
       height: 36px;
       border-radius: 6px;
@@ -262,10 +262,11 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      z-index: 6;
+      z-index: 4;
       transition: color 0.15s, border-color 0.15s;
     }
     #btn-fit:hover { color: var(--accent); border-color: var(--accent); }
+    #btn-fit.hidden { display: none; }
 
     /* ── Empty state ── */
     #empty {
@@ -314,7 +315,7 @@
     <div id="panel-content"></div>
   </div>
 
-  <button id="btn-fit" title="Zoom to fit all nodes">⊙</button>
+  <button id="btn-fit" class="hidden" title="Zoom to fit all nodes">⊙</button>
 
   <div id="loading">
     <div class="spin"></div>
