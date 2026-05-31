@@ -13,11 +13,7 @@ Quantitative FinTech · Cybersecurity · Automation and Enablement
 
 For inquiries: [info@strongentropy.com](mailto:info@strongentropy.com)
 
-To send encrypted communications, use the PGP public key below.
-
----
-
-## PGP Public Key
+For sensitive disclosures, use the PGP public key below to encrypt your message.
 
 **Algorithm:** Ed25519  
 **Key ID:** 7AAAFCD4  
@@ -25,67 +21,19 @@ To send encrypted communications, use the PGP public key below.
 
 Public key file: [strongentropy.asc](./strongentropy.asc)
 
-To import:
 ```bash
+# Import
 curl -s https://raw.githubusercontent.com/strongentropy/strongentropy.github.io/main/strongentropy.asc | gpg --import
-```
 
-To verify fingerprint after import:
-```bash
+# Verify fingerprint
 gpg --fingerprint info@strongentropy.com
 ```
 
 ---
 
-## Testing
+## Releases
 
-### Automated CI (runs on every push to `main` and weekly)
-
-| Workflow | What it tests | When |
-|---|---|---|
-| **CodeQL** (`.github/workflows/codeql.yml`) | Static analysis of JavaScript for security vulnerabilities | Every push, every PR, weekly Monday 06:00 UTC |
-| **Fuzz** (`.github/workflows/fuzz.yml`) | jazzer.js fuzzing of `parseUA`, `buildGraph`, `btoaUnicode/atobUnicode`, `timingSafeEqual` | Every push, every PR, weekly Monday 07:00 UTC |
-| **Dependency Audit** (`.github/workflows/audit.yml`) | `npm audit --audit-level=moderate` on worker dependencies | On `package-lock.json` changes, weekly Monday 06:00 UTC |
-| **OpenSSF Scorecard** (`.github/workflows/scorecard.yml`) | Supply chain security posture across 18 checks | Every push to `main`, weekly Monday 06:00 UTC |
-
-CI results are visible in the [Actions tab](https://github.com/strongentropy/strongentropy.github.io/actions). All workflows must pass before the branch protection status checks are satisfied.
-
-### Smoke tests (run manually against the live site)
-
-Requires `GRAPH_PASSWORD` and `FLUSH_TOKEN` set in `.env.local`.
-
-```bash
-make test          # run all smoke tests
-make test-headers  # verify security response headers
-make test-auth     # verify /graph/ and /api/logs auth gates (401 without, 200 with)
-make test-flush    # verify /flush endpoint responds with {ok: true}
-```
-
-These tests run against `https://strongentropy.com` and should be run after any worker deployment (`make deploy-worker`).
-
-### Test update policy
-
-All major changes to the Worker or graph code MUST include corresponding test coverage:
-
-- **New input-processing functions** — add a jazzer.js fuzz target in `worker/fuzz/`
-- **New API endpoints or auth paths** — add a `make test-*` smoke test and wire it into `make test`
-- **Changes to existing fuzzed functions** — update the corresponding fuzz target to reflect new behaviour and add corpus seeds for new code paths
-- **Security-relevant changes** — verify CodeQL and Scorecard continue to pass with no new findings
-
-Pull requests and direct pushes that introduce major functionality without accompanying tests will not be merged. Minor changes (documentation, styling, configuration) are exempt.
-
-### Exception: non-author human approval (OSPS-QA-07.01)
-
-This project has a single human maintainer. OSPS-QA-07.01 requires at least one non-author **human** approval before merging to the primary branch — the reviewer is AI and therefore does not satisfy this requirement. Compensating controls in place:
-
-- All commits are GPG-signed by the maintainer
-- Branch protection blocks force-push and branch deletion
-- Required CI status checks (CodeQL, fuzzing, npm audit) must pass before merge
-- gitleaks pre-commit hook scans every staged commit for secret exposure
-
----
-
-## Release Support Policy
+### Support policy
 
 This project follows a **rolling release** model — the live site always runs the latest commit on `main`, and tagged releases mark significant milestones.
 
@@ -94,73 +42,113 @@ This project follows a **rolling release** model — the live site always runs t
 | `v1.0.0` (latest) | Active | Superseded by next release |
 | Older releases | End of life | No further support |
 
-**Scope of support:**
-- Security vulnerabilities — patched in the current release as soon as practicable; no backports to older releases
-- Bug fixes — applied to `main` only
-- The live site at strongentropy.com always runs the current supported release
-
-Only the **latest release** receives security fixes. Users self-hosting any portion of this codebase should upgrade to the latest tagged release promptly when a new one is published.
+Only the **latest release** receives security fixes — no backports. Bug fixes are applied to `main` only. Users self-hosting any part of this codebase should upgrade promptly when a new release is published.
 
 Security issues should be reported per the [Security Policy](./SECURITY.md).
 
----
+### Verifying a release
 
-## Verifying Releases
+All releases are tagged with a GPG-signed git tag. To verify:
 
-All releases are tagged with a GPG-signed git tag using the key above.
-
-**1. Import the public key** (see above), then:
-
-**2. Verify the tag signature:**
 ```bash
 git clone https://github.com/strongentropy/strongentropy.github.io.git
 cd strongentropy.github.io
+
+# 1. Import the public key (see above), then verify the tag
 git tag -v v1.0.0
-```
 
-Expected output includes:
-```
-gpg: Good signature from "Strong Entropy LLC <info@strongentropy.com>"
-```
+# Expected output includes:
+# gpg: Good signature from "Strong Entropy LLC <info@strongentropy.com>"
 
-**3. Verify the tag fingerprint matches:**
-```
-3F1A A06D A8C5 8ACE F25B  C882 3263 D1B8 7AAA FCD4
-```
-
-**4. Verify the release commit:**
-```bash
+# 2. Verify the release commit
 git log --show-signature v1.0.0 -1
 ```
 
 Each release on the [Releases page](https://github.com/strongentropy/strongentropy.github.io/releases) lists the signing key fingerprint in the release notes.
 
-### Software Bill of Materials
-
-Each release includes a CycloneDX SBOM (`sbom.cdx.json`) attached as a release asset, listing all transitive dependencies of the Cloudflare Worker. To inspect it:
-
-```bash
-curl -sL https://github.com/strongentropy/strongentropy.github.io/releases/download/v1.0.0/sbom.cdx.json | python3 -m json.tool | less
-```
-
 ### Verifying signer identity
 
-A valid signature alone is not sufficient — you should also confirm the signing key belongs to Strong Entropy LLC. Cross-reference using at least one independent source:
+A valid signature confirms the tag was signed with the private key — but you should also confirm the key belongs to Strong Entropy LLC. Cross-reference against at least one independent source:
 
 | Source | Expected value |
 |---|---|
 | Signing identity in tag | `Strong Entropy LLC <info@strongentropy.com>` |
 | Key fingerprint | `3F1A A06D A8C5 8ACE F25B  C882 3263 D1B8 7AAA FCD4` |
-| Published at | https://strongentropy.com/strongentropy.asc |
+| Key published at | https://strongentropy.com/strongentropy.asc |
 | GitHub organization | https://github.com/strongentropy |
 
-The same key is used for all commits in this repository and can be independently verified via the published key file on the website. If the fingerprint in a release does not match the above, do not trust the release.
-
 ```bash
-# Confirm the key UID and fingerprint after import
+# Confirm key UID and fingerprint
 gpg --fingerprint info@strongentropy.com
-# Expected: 3F1A A06D A8C5 8ACE F25B  C882 3263 D1B8 7AAA FCD4
 
-# Confirm the key is also used for commits (not just tags)
+# Confirm the key signs commits too, not just release tags
 git log --show-signature --format="%H %aN" main | head -5
 ```
+
+If the fingerprint in a release does not match the above, do not trust it.
+
+### Software Bill of Materials
+
+Each release includes a CycloneDX SBOM (`sbom.cdx.json`) and an OpenVEX document (`vex.openvex.json`) attached as release assets. The SBOM lists all transitive dependencies of the Cloudflare Worker; the VEX documents any known vulnerabilities in those dependencies and whether they affect this project.
+
+```bash
+# Inspect the SBOM
+curl -sL https://github.com/strongentropy/strongentropy.github.io/releases/download/v1.0.0/sbom.cdx.json \
+  | python3 -m json.tool | less
+
+# Inspect the VEX document
+curl -sL https://github.com/strongentropy/strongentropy.github.io/releases/download/v1.0.0/v1.0.0.openvex.json \
+  | python3 -m json.tool | less
+```
+
+---
+
+## Testing
+
+### Automated CI
+
+All workflows run on every push to `main` and weekly. Results are in the [Actions tab](https://github.com/strongentropy/strongentropy.github.io/actions).
+
+| Workflow | What it tests | Schedule |
+|---|---|---|
+| **CodeQL** | Static analysis of JavaScript for security vulnerabilities | Every push, every PR, weekly Mon 06:00 UTC |
+| **Fuzz** | jazzer.js fuzzing of `parseUA`, `buildGraph`, `btoaUnicode/atobUnicode`, `timingSafeEqual` | Every push, every PR, weekly Mon 07:00 UTC |
+| **Dependency Audit** | `npm audit --audit-level=moderate` on worker dependencies | On `package-lock.json` changes, weekly Mon 06:00 UTC |
+| **OpenSSF Scorecard** | Supply chain security posture across 18 checks | Every push to `main`, weekly Mon 06:00 UTC |
+
+`Analyze (javascript)` and `npm audit` are required branch protection status checks — all pushes must pass both before merge.
+
+### Smoke tests
+
+Run manually against the live site after any worker deployment. Requires `GRAPH_PASSWORD` and `FLUSH_TOKEN` in `.env.local`.
+
+```bash
+make test          # run all smoke tests
+make test-headers  # verify security response headers
+make test-auth     # verify /graph/ and /api/logs auth gates (401 without, 200 with)
+make test-flush    # verify /flush endpoint responds with {ok: true}
+```
+
+### Test update policy
+
+All major changes to the Worker or graph code must include corresponding test coverage:
+
+- **New input-processing functions** — add a jazzer.js fuzz target in `worker/fuzz/`
+- **New API endpoints or auth paths** — add a `make test-*` smoke test and wire it into `make test`
+- **Changes to existing fuzzed functions** — update the fuzz target and add corpus seeds for new code paths
+- **Security-relevant changes** — verify CodeQL and Scorecard continue to pass with no new findings
+
+Minor changes (documentation, styling, configuration) are exempt.
+
+---
+
+## Governance
+
+### Code review
+
+This project has a single human maintainer. The reviewer is AI and therefore does not satisfy the non-author human approval requirement (OSPS-QA-07.01). Compensating controls in place:
+
+- All commits are GPG-signed by the maintainer
+- Branch protection blocks force-push and branch deletion
+- Required CI status checks (CodeQL, fuzzing, npm audit) must pass before merge
+- gitleaks pre-commit hook scans every staged commit for secret exposure

@@ -18,58 +18,11 @@ We will acknowledge receipt within 48 hours and aim to resolve confirmed vulnera
 
 This policy covers strongentropy.com and all repositories under the [@strongentropy](https://github.com/strongentropy) GitHub organization.
 
-## SAST Remediation Policy
-
-Static Application Security Testing (SAST) is performed by CodeQL on every push to `main`, every pull request, and weekly. Results are published to the GitHub Security tab.
-
-| Severity | Remediation deadline |
-|---|---|
-| Critical / High | Must be resolved before the next commit to `main` — CodeQL is a required status check |
-| Medium | Within 14 days |
-| Low / Informational | Within 90 days, or dismissed with documented justification |
-
-Findings confirmed to be false positives or non-exploitable in this project's context may be dismissed in the GitHub Security tab with a written justification. Dismissed findings are reviewed at each release to confirm the justification remains valid.
-
-The CI CodeQL gate (`codeql.yml`) is a required branch protection status check — any new high or critical finding will fail the check and block merge until resolved or formally dismissed.
-
-## SCA Remediation Policy
-
-### Vulnerability thresholds
-
-Software Composition Analysis (SCA) is performed continuously via `npm audit` (CI on every push and weekly) and at release time via the VEX document.
-
-| Severity | Remediation deadline |
-|---|---|
-| Critical | Within 48 hours of disclosure — patch or remove dependency |
-| High | Within 7 days |
-| Moderate | Within 30 days |
-| Low / Informational | Next scheduled release, or 90 days |
-
-Vulnerabilities confirmed non-exploitable in this project's context (e.g. a server-side vuln in a browser-only dependency) are documented in the VEX document with justification and exempt from the above deadlines.
-
-The CI audit gate (`npm audit --audit-level=moderate`) will fail the build for moderate and above, blocking deployment until resolved.
-
-### License thresholds
-
-Dependencies must be compatible with this project's dual-license (MIT code / All Rights Reserved content). Acceptable dependency licenses:
-
-- **Permitted:** MIT, ISC, BSD-2-Clause, BSD-3-Clause, Apache-2.0, CC0-1.0, Unlicense
-- **Review required:** LGPL (any version), MPL-2.0, CC-BY-*
-- **Prohibited:** GPL, AGPL, SSPL, proprietary/commercial-only, or any license with copyleft terms that would require source disclosure of this project's code
-
-License compliance is reviewed manually at each release as part of the `make release` checklist. Any dependency introducing a prohibited license must be removed or replaced before the release tag is created.
-
-## Vulnerability Exploitability eXchange (VEX)
-
-Known vulnerabilities in dependencies that do not affect this project are documented in OpenVEX format in the `vex/` directory and attached as `vex.openvex.json` to each GitHub release alongside the SBOM.
-
-VEX documents are generated automatically by the release workflow using `npm audit`. If vulnerabilities are found at release time, the VEX document will carry `status: under_investigation` until each vulnerability is assessed and resolved or marked non-exploitable with justification.
-
-The current release VEX document is at [`vex/v1.0.0.openvex.json`](./vex/v1.0.0.openvex.json).
-
 ## Threat Model
 
 A threat model and attack surface analysis covering critical code paths, trust boundaries, and mitigations is maintained in [THREAT_MODEL.md](./THREAT_MODEL.md).
+
+---
 
 ## Collaborator Access Policy
 
@@ -124,3 +77,62 @@ Rotation procedure: generate new value → update Cloudflare Worker secret via `
 ### Incident response
 
 If a secret is suspected compromised: revoke immediately via the issuing platform (Cloudflare dashboard or GitHub Settings), rotate per the table above, and review Worker and GitHub audit logs for unauthorized use.
+
+---
+
+## SAST Remediation Policy
+
+Static Application Security Testing (SAST) is performed by CodeQL on every push to `main`, every pull request, and weekly. Results are published to the GitHub Security tab.
+
+| Severity | Remediation deadline |
+|---|---|
+| Critical / High | Must be resolved before the next commit to `main` — CodeQL is a required status check |
+| Medium | Within 14 days |
+| Low / Informational | Within 90 days, or dismissed with documented justification |
+
+Findings confirmed to be false positives or non-exploitable in this project's context may be dismissed in the GitHub Security tab with a written justification. Dismissed findings are reviewed at each release to confirm the justification remains valid.
+
+The CI CodeQL gate (`codeql.yml`) is a required branch protection status check — any new high or critical finding will fail the check and block merge until resolved or formally dismissed.
+
+All changes to the codebase are automatically evaluated against this policy on every push and pull request via the `codeql.yml` workflow. Any severity above the threshold blocks merge.
+
+## SCA Remediation Policy
+
+Software Composition Analysis (SCA) is performed continuously via `npm audit` (CI on every push and weekly) and at release time via the VEX document.
+
+### Vulnerability thresholds
+
+| Severity | Remediation deadline |
+|---|---|
+| Critical | Within 48 hours of disclosure — patch or remove dependency |
+| High | Within 7 days |
+| Moderate | Within 30 days |
+| Low / Informational | Next scheduled release, or 90 days |
+
+Vulnerabilities confirmed non-exploitable in this project's context (e.g. a server-side vuln in a browser-only dependency) are documented in the VEX document with justification and exempt from the above deadlines.
+
+The CI audit gate (`npm audit --audit-level=moderate`) will fail the build for moderate and above, blocking deployment until resolved.
+
+All changes to the codebase are automatically evaluated against this policy on every push via `audit.yml`. Any malicious or vulnerable dependency at or above the threshold blocks merge.
+
+### License thresholds
+
+Dependencies must be compatible with this project's dual-license (MIT code / All Rights Reserved content). Acceptable dependency licenses:
+
+- **Permitted:** MIT, ISC, BSD-2-Clause, BSD-3-Clause, Apache-2.0, CC0-1.0, Unlicense
+- **Review required:** LGPL (any version), MPL-2.0, CC-BY-*
+- **Prohibited:** GPL, AGPL, SSPL, proprietary/commercial-only, or any license with copyleft terms that would require source disclosure of this project's code
+
+License compliance is reviewed manually at each release as part of the `make release` checklist. Any dependency introducing a prohibited license must be removed or replaced before the release tag is created.
+
+### Pre-release SCA review
+
+All SCA findings are reviewed as part of the `make release` checklist before any release tag is created. Unresolved vulnerabilities at or above the Moderate threshold must be patched, removed, or documented as non-exploitable in the VEX document before tagging. The release workflow generates a VEX document from `npm audit` output and attaches it to the release; if vulnerabilities exist at tag time, the VEX will carry `status: under_investigation` until each is resolved or dismissed.
+
+## Vulnerability Exploitability eXchange (VEX)
+
+Known vulnerabilities in dependencies that do not affect this project are documented in OpenVEX format in the `vex/` directory and attached as `vex.openvex.json` to each GitHub release alongside the SBOM.
+
+VEX documents are generated automatically by the release workflow using `npm audit`. If vulnerabilities are found at release time, the VEX document will carry `status: under_investigation` until each vulnerability is assessed and resolved or marked non-exploitable with justification.
+
+The current release VEX document is at [`vex/v1.0.0.openvex.json`](./vex/v1.0.0.openvex.json).
