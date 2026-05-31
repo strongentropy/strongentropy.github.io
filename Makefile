@@ -1,4 +1,4 @@
-.PHONY: deploy deploy-site deploy-worker test test-headers test-auth test-flush open graph flush
+.PHONY: deploy deploy-site deploy-worker test test-headers test-auth test-flush open graph flush hooks
 
 SITE_URL   = https://strongentropy.com
 GRAPH_USER = admin
@@ -57,6 +57,12 @@ test-flush:
 flush:
 	@[ -n "$(FLUSH_TOKEN)" ] || (echo "Set FLUSH_TOKEN in .env.local or environment" && exit 1)
 	@curl -s "$(SITE_URL)/flush?token=$(FLUSH_TOKEN)" | python3 -m json.tool
+
+# ── Git hooks ─────────────────────────────────────────────────────────────────
+
+hooks:
+	git config core.hooksPath .githooks
+	@echo "Git hooks installed. Run: brew install gitleaks"
 
 # ── Open in browser ───────────────────────────────────────────────────────────
 

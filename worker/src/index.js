@@ -2,6 +2,7 @@ const SECURITY_HEADERS = {
   'Strict-Transport-Security':   'max-age=31536000; includeSubDomains',
   'X-Content-Type-Options':      'nosniff',
   'X-Frame-Options':             'DENY',
+  'X-DNS-Prefetch-Control':      'off',
   'Referrer-Policy':             'strict-origin-when-cross-origin',
   'Permissions-Policy':          'camera=(), microphone=(), geolocation=(), payment=(), usb=()',
   'Cross-Origin-Opener-Policy':  'same-origin',
@@ -16,20 +17,66 @@ const SECURITY_HEADERS = {
     "base-uri 'self'",
 };
 
-function applySecurityHeaders(response) {
+const GRAPH_CSP =
+  "default-src 'self'; " +
+  "font-src 'self'; " +
+  "style-src 'self' 'unsafe-inline'; " +
+  "img-src 'self' data:; " +
+  "script-src 'self'; " +
+  "connect-src 'self'; " +
+  "frame-ancestors 'none'; " +
+  "form-action 'none'; " +
+  "base-uri 'self'";
+
+function applySecurityHeaders(response, graph = false) {
   const headers = new Headers(response.headers);
-  for (const [k, v] of Object.entries(SECURITY_HEADERS)) headers.set(k, v);
+  for (const [k, v] of Object.entries(SECURITY_HEADERS)) {
+    headers.set(k, graph && k === 'Content-Security-Policy' ? GRAPH_CSP : v);
+  }
   return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
 }
 
-const RATE_LIMIT = 60;      // max requests
-const RATE_WINDOW = 60;     // per N seconds
+const RATE_LIMIT = 60;
+const RATE_WINDOW = 60;
 
 function block(status, message) {
   return new Response(message, {
     status,
     headers: { 'Content-Type': 'text/plain', ...SECURITY_HEADERS },
   });
+}
+
+function authChallenge() {
+  return new Response('Unauthorized', {
+    status: 401,
+    headers: {
+      'WWW-Authenticate': 'Basic realm="Strong Entropy", charset="UTF-8"',
+      'Content-Type': 'text/plain',
+    },
+  });
+}
+
+function timingSafeEqual(a, b) {
+  const aBytes = new TextEncoder().encode(a);
+  const bBytes = new TextEncoder().encode(b);
+  let result = aBytes.length !== bBytes.length ? 1 : 0;
+  const len = Math.max(aBytes.length, bBytes.length);
+  for (let i = 0; i < len; i++) {
+    result |= (aBytes[i] ?? 0) ^ (bBytes[i] ?? 0);
+  }
+  return result === 0;
+}
+
+function isAuthenticated(request, env) {
+  const auth = request.headers.get('Authorization') || '';
+  if (!auth.startsWith('Basic ')) return false;
+  try {
+    const decoded = atob(auth.slice(6));
+    const colon = decoded.indexOf(':');
+    const user = decoded.slice(0, colon);
+    const pass = decoded.slice(colon + 1);
+    return timingSafeEqual(user, 'admin') && timingSafeEqual(pass, env.GRAPH_PASSWORD);
+  } catch { return false; }
 }
 
 async function checkRateLimit(ip, env) {
@@ -48,6 +95,34 @@ export default {
 
     const ip = request.headers.get('CF-Connecting-IP') || '';
     if (await checkRateLimit(ip, env)) return block(429, 'Too Many Requests');
+
+    const url = new URL(request.url);
+
+    // On-demand log flush — token auth
+    if (url.pathname === '/flush') {
+      const token = url.searchParams.get('token');
+      if (!token || !timingSafeEqual(token, env.FLUSH_TOKEN)) return block(403, 'Forbidden');
+      ctx.waitUntil(flushToGitHub(env));
+      return new Response(JSON.stringify({ ok: true, message: 'Flush triggered' }), {
+        status: 202,
+        headers: { 'Content-Type': 'application/json', ...SECURITY_HEADERS },
+      });
+    }
+
+    // Log data API — basic auth + same-origin CORS enforcement
+    if (url.pathname === '/api/logs') {
+      const origin = request.headers.get('Origin');
+      if (origin && origin !== 'https://strongentropy.com') return block(403, 'Forbidden');
+      if (!isAuthenticated(request, env)) return authChallenge();
+      return serveLogs(url, env);
+    }
+
+    // Graph page — basic auth, relaxed CSP
+    if (url.pathname === '/graph' || url.pathname.startsWith('/graph/')) {
+      if (!isAuthenticated(request, env)) return authChallenge();
+      const response = await proxyToGitHubPages(request, env);
+      return applySecurityHeaders(response, true);
+    }
 
     ctx.waitUntil(logVisit(request, env));
     const response = await proxyToGitHubPages(request, env);
@@ -75,11 +150,53 @@ async function proxyToGitHubPages(request, env) {
   return fetch(proxyReq);
 }
 
+async function serveLogs(url, env) {
+  const days = Math.min(parseInt(url.searchParams.get('days') || '30'), 365);
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - days);
+  const cutoffStr = cutoff.toISOString().slice(0, 10);
+
+  // List files in logs/ directory
+  const listRes = await ghFetch(env, 'GET', 'logs');
+  if (!listRes.ok) {
+    return new Response(JSON.stringify([]), {
+      headers: { 'Content-Type': 'application/json', ...SECURITY_HEADERS, 'Content-Security-Policy': GRAPH_CSP },
+    });
+  }
+
+  const files = await listRes.json();
+  const relevant = files.filter(f =>
+    f.name.endsWith('.ndjson') && f.name.replace('.ndjson', '') >= cutoffStr
+  );
+
+  const results = await Promise.all(
+    relevant.map(async (file) => {
+      const r = await ghFetch(env, 'GET', `logs/${file.name}`);
+      if (!r.ok) return [];
+      const data = await r.json();
+      const content = atobUnicode(data.content.replace(/\n/g, ''));
+      return content.trim().split('\n').filter(Boolean).map(line => {
+        try { return JSON.parse(line); } catch { return null; }
+      }).filter(Boolean);
+    })
+  );
+
+  const entries = results.flat();
+
+  return new Response(JSON.stringify(entries), {
+    headers: {
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-store',
+      ...SECURITY_HEADERS,
+      'Content-Security-Policy': GRAPH_CSP,
+    },
+  });
+}
+
 async function logVisit(request, env) {
   const cf = request.cf || {};
   const url = new URL(request.url);
 
-  // Skip non-page requests
   if (url.pathname.match(/\.(ico|svg|png|jpg|css|js|woff|map)$/)) return;
 
   const entry = {
@@ -98,7 +215,6 @@ async function logVisit(request, env) {
   };
 
   const key = `log:${Date.now()}:${crypto.randomUUID()}`;
-  // 7-day TTL as safety net in case flush fails repeatedly
   await env.VISITS.put(key, JSON.stringify(entry), { expirationTtl: 604800 });
 }
 
@@ -106,7 +222,6 @@ async function flushToGitHub(env) {
   const list = await env.VISITS.list({ prefix: 'log:' });
   if (list.keys.length === 0) return;
 
-  // Fetch all buffered entries
   const entries = await Promise.all(
     list.keys.map(async (k) => {
       const val = await env.VISITS.get(k.name);
@@ -115,14 +230,12 @@ async function flushToGitHub(env) {
   );
   const valid = entries.filter(Boolean);
 
-  // Group by UTC date
   const byDate = {};
   for (const entry of valid) {
     const date = entry.data.ts.slice(0, 10);
     (byDate[date] ??= []).push(entry);
   }
 
-  // Append each day's entries to its log file
   for (const [date, dateEntries] of Object.entries(byDate)) {
     const path = `logs/${date}.ndjson`;
     const newLines = dateEntries.map((e) => JSON.stringify(e.data)).join('\n');
@@ -140,7 +253,6 @@ async function flushToGitHub(env) {
     await putGitHubFile(env, path, content, sha, `logs: ${date} (${dateEntries.length} visits)`);
   }
 
-  // Delete flushed KV entries
   await Promise.all(valid.map((e) => env.VISITS.delete(e.key)));
 }
 

@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Pre-commit: secret scanning via gitleaks
+set -euo pipefail
+
+if command -v gitleaks &>/dev/null; then
+  gitleaks protect --staged --config .gitleaks.toml --redact -v
+else
+  echo "[pre-commit] gitleaks not installed — skipping secret scan" >&2
+  echo "[pre-commit] Install: brew install gitleaks" >&2
+fi

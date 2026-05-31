@@ -1,0 +1,35 @@
+name: Dependency Audit
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'worker/package-lock.json'
+  pull_request:
+    paths:
+      - 'worker/package-lock.json'
+  schedule:
+    - cron: '0 6 * * 1'  # weekly Monday 06:00 UTC
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: npm audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        working-directory: worker
+        run: npm ci
+
+      - name: Run audit
+        working-directory: worker
+        run: npm audit --audit-level=moderate

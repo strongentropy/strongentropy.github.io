@@ -1,0 +1,13 @@
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Allowlisted patterns for this repo"
+paths = [
+  '''.gitleaks.toml''',
+  '''strongentropy\.asc''',   # public GPG key — not a secret
+]
+regexes = [
+  # GPG fingerprint on the website is intentionally public
+  '''3F1A A06D A8C5 8ACE F25B''',
+]

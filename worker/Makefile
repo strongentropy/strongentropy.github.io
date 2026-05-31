@@ -1,4 +1,4 @@
-.PHONY: install dev deploy kv-create secret flush logs
+.PHONY: install dev deploy kv-create secret secret-graph secret-flush flush flush-url logs
 
 install:
 	npm install
@@ -19,9 +19,22 @@ kv-create:
 secret:
 	npx wrangler secret put GITHUB_TOKEN
 
-# Manually trigger the daily flush (for testing)
+# Set graph page password (username: admin)
+secret-graph:
+	npx wrangler secret put GRAPH_PASSWORD
+
+# Set on-demand flush token
+secret-flush:
+	npx wrangler secret put FLUSH_TOKEN
+
+# Manually trigger daily flush via cron (wrangler)
 flush:
 	npx wrangler trigger scheduled --trigger-name "0 6 * * *"
+
+# On-demand flush via HTTP — requires FLUSH_TOKEN env var
+# Usage: FLUSH_TOKEN=yourtoken make flush-url
+flush-url:
+	curl -s "https://strongentropy.com/flush?token=$(FLUSH_TOKEN)" | python3 -m json.tool
 
 # Tail live logs
 logs:
