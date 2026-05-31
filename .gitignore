@@ -2,3 +2,5 @@
 .env
 *.local
 .env.local
+worker/fuzz/crashes/
+worker/node_modules/

@@ -1,0 +1,61 @@
+name: Fuzz
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 7 * * 1'  # weekly Monday 07:00 UTC
+
+permissions: read-all
+
+jobs:
+  fuzz:
+    name: Fuzz JavaScript targets
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        working-directory: worker
+        run: npm ci
+
+      - name: Fuzz parseUA
+        working-directory: worker
+        run: >
+          npx jazzer fuzz/parse-ua.fuzz.js fuzz/corpus/parse-ua --sync
+          -- -max_total_time=30 -artifact_prefix=fuzz/crashes/parse-ua-
+
+      - name: Fuzz buildGraph
+        working-directory: worker
+        run: >
+          npx jazzer fuzz/build-graph.fuzz.js fuzz/corpus/build-graph --sync
+          -- -max_total_time=30 -artifact_prefix=fuzz/crashes/build-graph-
+
+      - name: Fuzz unicode codec
+        working-directory: worker
+        run: >
+          npx jazzer fuzz/unicode-codec.fuzz.js --sync
+          -- -max_total_time=30 -artifact_prefix=fuzz/crashes/unicode-codec-
+
+      - name: Fuzz timingSafeEqual
+        working-directory: worker
+        run: >
+          npx jazzer fuzz/timing-safe.fuzz.js --sync
+          -- -max_total_time=30 -artifact_prefix=fuzz/crashes/timing-safe-
+
+      - name: Upload crash artifacts
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: fuzz-crashes
+          path: worker/fuzz/crashes/
+          retention-days: 14
