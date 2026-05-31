@@ -35,6 +35,26 @@ gpg --fingerprint info@strongentropy.com
 
 ---
 
+## Release Support Policy
+
+This project follows a **rolling release** model — the live site always runs the latest commit on `main`, and tagged releases mark significant milestones.
+
+| Release | Status | Supported until |
+|---|---|---|
+| `v1.0.0` (latest) | Active | Superseded by next release |
+| Older releases | End of life | No further support |
+
+**Scope of support:**
+- Security vulnerabilities — patched in the current release as soon as practicable; no backports to older releases
+- Bug fixes — applied to `main` only
+- The live site at strongentropy.com always runs the current supported release
+
+Only the **latest release** receives security fixes. Users self-hosting any portion of this codebase should upgrade to the latest tagged release promptly when a new one is published.
+
+Security issues should be reported per the [Security Policy](./SECURITY.md).
+
+---
+
 ## Verifying Releases
 
 All releases are tagged with a GPG-signed git tag using the key above.
