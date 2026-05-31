@@ -18,6 +18,20 @@ We will acknowledge receipt within 48 hours and aim to resolve confirmed vulnera
 
 This policy covers strongentropy.com and all repositories under the [@strongentropy](https://github.com/strongentropy) GitHub organization.
 
+## Collaborator Access Policy
+
+Strong Entropy LLC is a single-maintainer project. No external collaborators are granted write or admin access to this repository or its associated infrastructure.
+
+Any future addition of a collaborator with escalated permissions (repository write/admin, Cloudflare account access, or GitHub organization membership) requires:
+
+1. **Identity verification** — confirmed real identity via a known communication channel before access is granted
+2. **Least-privilege assignment** — access scoped to only the specific resources and permissions required for the defined role
+3. **Review period** — a minimum 30-day observation period as a read-only collaborator before any write permissions are granted
+4. **Key verification** — GPG key fingerprint confirmed out-of-band before any signed-commit privileges are trusted
+5. **Documented approval** — access grant recorded in a private access log with justification and scope
+
+Collaborators with escalated permissions are reviewed at least annually. Access is revoked immediately upon role change or at the collaborator's request.
+
 ## Secrets and Credentials Policy
 
 ### Secrets in use
