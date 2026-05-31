@@ -7,12 +7,15 @@ on:
 
 permissions: read-all
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+
 jobs:
   sbom-vex:
     name: Generate and attach SBOM + VEX
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # needed to upload release assets
+      contents: write  # needed to upload release assets and commit VEX
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -40,6 +43,7 @@ jobs:
           TAG: ${{ github.ref_name }}
         run: |
           TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          PKG_VERSION=$(node -p "require('./worker/package.json').version")
           AUDIT=$(cd worker && pnpm audit --json 2>/dev/null || echo '{"metadata":{"vulnerabilities":{"info":0,"low":0,"moderate":0,"high":0,"critical":0}}}')
           VULN_COUNT=$(echo "$AUDIT" | python3 -c "import sys,json; v=json.load(sys.stdin)['metadata']['vulnerabilities']; print(sum(v.get(s,0) for s in ['info','low','moderate','high','critical']))")
 
@@ -53,9 +57,10 @@ jobs:
             JUSTIFICATION=""
           fi
 
-          python3 -c "
+          PKG_VERSION_VAL="$PKG_VERSION" python3 -c "
           import json, sys, os
           tag = os.environ['TAG']
+          pkg_version = os.environ['PKG_VERSION_VAL']
           doc = {
             '@context': 'https://openvex.dev/ns/v0.2.0',
             '@id': f'https://github.com/strongentropy/strongentropy.github.io/blob/main/vex/{tag}.openvex.json',
@@ -67,7 +72,7 @@ jobs:
             'product': {
               '@id': 'https://github.com/strongentropy/strongentropy.github.io',
               'identifiers': {'purl': f'pkg:github/strongentropy/strongentropy.github.io@{tag}'},
-              'subcomponents': [{'@id': 'pkg:npm/strongentropy-logger@1.1.0'}]
+              'subcomponents': [{'@id': f'pkg:npm/strongentropy-logger@{pkg_version}'}]
             },
             'statements': [{
               'vulnerability': {'description': f'Dependency vulnerability assessment at {tag}'},
@@ -78,11 +83,21 @@ jobs:
             }]
           }
           print(json.dumps(doc, indent=2))
-          " > vex.openvex.json
+          " > vex/${{ github.ref_name }}.openvex.json
+
+      - name: Commit VEX to repository
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git checkout main
+          git add vex/${{ github.ref_name }}.openvex.json
+          git diff --staged --quiet || git commit -m "docs: add VEX document for ${{ github.ref_name }} [skip ci]"
+          git push origin main
 
       - name: Attach SBOM and VEX to release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release upload "${{ github.ref_name }}" sbom.cdx.json --clobber
-          gh release upload "${{ github.ref_name }}" vex.openvex.json --clobber
+          gh release upload "${{ github.ref_name }}" vex/${{ github.ref_name }}.openvex.json --clobber
