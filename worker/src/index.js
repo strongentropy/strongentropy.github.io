@@ -106,9 +106,10 @@ export default {
     if (!ua || ua.trim() === '') return block(403, 'Forbidden');
 
     const ip = request.headers.get('CF-Connecting-IP') || '';
-    if (await checkRateLimit(ip, env)) return block(429, 'Too Many Requests');
-
     const url = new URL(request.url);
+
+    const isAsset = /\.(ico|svg|png|jpg|jpeg|css|js|woff|woff2|map|txt)$/.test(url.pathname);
+    if (!isAsset && await checkRateLimit(ip, env)) return block(429, 'Too Many Requests');
 
     // On-demand log flush — token auth
     if (url.pathname === '/flush') {
