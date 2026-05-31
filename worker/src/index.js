@@ -108,8 +108,11 @@ export default {
     const ip = request.headers.get('CF-Connecting-IP') || '';
     const url = new URL(request.url);
 
+    const ownerIps = (env.OWNER_IPS || '').split(',').map(s => s.trim()).filter(Boolean);
+    const isOwner = ownerIps.includes(ip);
+
     const isAsset = /\.(ico|svg|png|jpg|jpeg|css|js|woff|woff2|map|txt)$/.test(url.pathname);
-    if (!isAsset && await checkRateLimit(ip, env)) return block(429, 'Too Many Requests');
+    if (!isOwner && !isAsset && await checkRateLimit(ip, env)) return block(429, 'Too Many Requests');
 
     // On-demand log flush — token auth
     if (url.pathname === '/flush') {
@@ -137,7 +140,7 @@ export default {
       return applySecurityHeaders(response, true);
     }
 
-    ctx.waitUntil(logVisit(request, env));
+    if (!isOwner) ctx.waitUntil(logVisit(request, env));
     const response = await proxyToGitHubPages(request, env);
     return applySecurityHeaders(response);
   },
