@@ -434,6 +434,13 @@
     buildFilters(nodes);
     setStatus(`${nodes.length} nodes · ${links.length} edges · ${entries.length} visits`);
 
+    const latest = entries.reduce((max, e) => e.ts > max ? e.ts : max, '');
+    if (latest) {
+      const d = new Date(latest);
+      document.getElementById('latest').textContent =
+        'latest: ' + d.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZoneName: 'short' });
+    }
+
     const svg  = d3.select('#graph');
     const wrap = document.getElementById('canvas-wrap');
     renderGraph(svg, wrap.clientWidth, wrap.clientHeight);
