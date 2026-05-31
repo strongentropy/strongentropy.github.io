@@ -151,7 +151,7 @@ async function proxyToGitHubPages(request, env) {
 }
 
 async function serveLogs(url, env) {
-  const days = Math.min(parseInt(url.searchParams.get('days') || '30'), 365);
+  const days = Math.min(Math.max(parseInt(url.searchParams.get('days')) || 30, 1), 365);
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - days);
   const cutoffStr = cutoff.toISOString().slice(0, 10);
@@ -164,6 +164,12 @@ async function serveLogs(url, env) {
     });
   }
 
+  const ct = listRes.headers.get('content-type') || '';
+  if (!ct.includes('application/json')) {
+    return new Response(JSON.stringify([]), {
+      headers: { 'Content-Type': 'application/json', ...SECURITY_HEADERS, 'Content-Security-Policy': GRAPH_CSP },
+    });
+  }
   const files = await listRes.json();
   const relevant = files.filter(f =>
     f.name.endsWith('.ndjson') && f.name.replace('.ndjson', '') >= cutoffStr
@@ -225,14 +231,17 @@ async function flushToGitHub(env) {
   const entries = await Promise.all(
     list.keys.map(async (k) => {
       const val = await env.VISITS.get(k.name);
-      return val ? { key: k.name, data: JSON.parse(val) } : null;
+      if (!val) return null;
+      try { return { key: k.name, data: JSON.parse(val) }; } catch { return null; }
     })
   );
   const valid = entries.filter(Boolean);
 
+  const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
   const byDate = {};
   for (const entry of valid) {
-    const date = entry.data.ts.slice(0, 10);
+    const date = typeof entry.data.ts === 'string' ? entry.data.ts.slice(0, 10) : '';
+    if (!DATE_RE.test(date)) continue;
     (byDate[date] ??= []).push(entry);
   }
 
