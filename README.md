@@ -5,6 +5,8 @@ Quantitative FinTech · Cybersecurity · Automation and Enablement
 **Website:** https://strongentropy.com  
 **Email:** info@strongentropy.com
 
+[![OpenSSF Baseline](https://www.bestpractices.dev/projects/13050/baseline)](https://www.bestpractices.dev/projects/13050)
+
 ---
 
 ## Contact
