@@ -64,3 +64,25 @@ git log --show-signature v1.0.0 -1
 ```
 
 Each release on the [Releases page](https://github.com/strongentropy/strongentropy.github.io/releases) lists the signing key fingerprint in the release notes.
+
+### Verifying signer identity
+
+A valid signature alone is not sufficient — you should also confirm the signing key belongs to Strong Entropy LLC. Cross-reference using at least one independent source:
+
+| Source | Expected value |
+|---|---|
+| Signing identity in tag | `Strong Entropy LLC <info@strongentropy.com>` |
+| Key fingerprint | `3F1A A06D A8C5 8ACE F25B  C882 3263 D1B8 7AAA FCD4` |
+| Published at | https://strongentropy.com/strongentropy.asc |
+| GitHub organization | https://github.com/strongentropy |
+
+The same key is used for all commits in this repository and can be independently verified via the published key file on the website. If the fingerprint in a release does not match the above, do not trust the release.
+
+```bash
+# Confirm the key UID and fingerprint after import
+gpg --fingerprint info@strongentropy.com
+# Expected: 3F1A A06D A8C5 8ACE F25B  C882 3263 D1B8 7AAA FCD4
+
+# Confirm the key is also used for commits (not just tags)
+git log --show-signature --format="%H %aN" main | head -5
+```
