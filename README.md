@@ -35,6 +35,34 @@ gpg --fingerprint info@strongentropy.com
 
 ---
 
+## Testing
+
+### Automated CI (runs on every push to `main` and weekly)
+
+| Workflow | What it tests | When |
+|---|---|---|
+| **CodeQL** (`.github/workflows/codeql.yml`) | Static analysis of JavaScript for security vulnerabilities | Every push, every PR, weekly Monday 06:00 UTC |
+| **Fuzz** (`.github/workflows/fuzz.yml`) | jazzer.js fuzzing of `parseUA`, `buildGraph`, `btoaUnicode/atobUnicode`, `timingSafeEqual` | Every push, every PR, weekly Monday 07:00 UTC |
+| **Dependency Audit** (`.github/workflows/audit.yml`) | `npm audit --audit-level=moderate` on worker dependencies | On `package-lock.json` changes, weekly Monday 06:00 UTC |
+| **OpenSSF Scorecard** (`.github/workflows/scorecard.yml`) | Supply chain security posture across 18 checks | Every push to `main`, weekly Monday 06:00 UTC |
+
+CI results are visible in the [Actions tab](https://github.com/strongentropy/strongentropy.github.io/actions). All workflows must pass before the branch protection status checks are satisfied.
+
+### Smoke tests (run manually against the live site)
+
+Requires `GRAPH_PASSWORD` and `FLUSH_TOKEN` set in `.env.local`.
+
+```bash
+make test          # run all smoke tests
+make test-headers  # verify security response headers
+make test-auth     # verify /graph/ and /api/logs auth gates (401 without, 200 with)
+make test-flush    # verify /flush endpoint responds with {ok: true}
+```
+
+These tests run against `https://strongentropy.com` and should be run after any worker deployment (`make deploy-worker`).
+
+---
+
 ## Release Support Policy
 
 This project follows a **rolling release** model — the live site always runs the latest commit on `main`, and tagged releases mark significant milestones.
