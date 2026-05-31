@@ -214,8 +214,8 @@ async function logVisit(request, env) {
     org:     cf.asOrganization,
     lat:     cf.latitude,
     lon:     cf.longitude,
-    ua:      request.headers.get('User-Agent'),
-    ref:     request.headers.get('Referer'),
+    ua:      (request.headers.get('User-Agent')  || '').slice(0, 512),
+    ref:     (request.headers.get('Referer')     || '').slice(0, 512),
     path:    url.pathname,
     method:  request.method,
   };
