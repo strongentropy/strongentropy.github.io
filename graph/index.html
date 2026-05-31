@@ -245,6 +245,28 @@
     @keyframes spin { to { transform: rotate(360deg); } }
     #loading p { font-size: 0.72rem; color: var(--dim); }
 
+    /* ── Zoom-to-fit button ── */
+    #btn-fit {
+      position: absolute;
+      bottom: 1.25rem;
+      right: 1.25rem;
+      width: 36px;
+      height: 36px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--dim);
+      font-size: 1rem;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 6;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    #btn-fit:hover { color: var(--accent); border-color: var(--accent); }
+
     /* ── Empty state ── */
     #empty {
       position: absolute;
@@ -292,6 +314,8 @@
     <div id="panel-content"></div>
   </div>
 
+  <button id="btn-fit" title="Zoom to fit all nodes">⊙</button>
+
   <div id="loading">
     <div class="spin"></div>
     <p id="loading-msg">Fetching logs…</p>
@@ -301,6 +325,6 @@
 </div>
 
 <script src="/assets/js/d3.min.js?v=7"></script>
-<script src="/assets/js/graph.js?v=2"></script>
+<script src="/assets/js/graph.js?v=3"></script>
 </body>
 </html>
