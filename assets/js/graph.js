@@ -23,6 +23,8 @@
   let simulation = null;
   let nodeSelection, linkSelection, labelSelection;
   let transform = d3.zoomIdentity;
+  let zoom = null;
+  let svgSel = null;
 
   // ── UA parser ─────────────────────────────────────────────────────────────
   function parseUA(ua) {
@@ -190,9 +192,11 @@
 
     if (nodes.length === 0) {
       document.getElementById('empty').classList.add('visible');
+      document.getElementById('btn-fit').classList.add('hidden');
       return;
     }
     document.getElementById('empty').classList.remove('visible');
+    document.getElementById('btn-fit').classList.remove('hidden');
 
     const g = svg.append('g');
 
@@ -268,15 +272,15 @@
     svg.on('click', () => { applyFocus(null); closePanel(); });
 
     // Zoom
-    const zoom = d3.zoom()
+    zoom = d3.zoom()
       .scaleExtent([0.1, 8])
       .on('zoom', (event) => {
         transform = event.transform;
         g.attr('transform', transform);
-        // Show more labels when zoomed in
         const k = event.transform.k;
         labelSelection.style('opacity', d => (d.count >= 3 || d.type === 'country' || k > 2) ? 0.75 : 0);
       });
+    svgSel = svg;
     svg.call(zoom).call(zoom.transform, transform);
 
     // Simulation
@@ -303,6 +307,39 @@
         nodeG.attr('transform', d => `translate(${d.x},${d.y})`);
         labelSelection.attr('transform', d => `translate(${d.x},${d.y})`);
       });
+  }
+
+  // ── Zoom to fit ───────────────────────────────────────────────────────────
+  function zoomToFit() {
+    if (!svgSel || !zoom) return;
+    const { nodes } = filteredGraph();
+    if (nodes.length === 0) return;
+
+    const wrap = document.getElementById('canvas-wrap');
+    const W = wrap.clientWidth;
+    const H = wrap.clientHeight;
+    const pad = 48;
+
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    nodes.forEach(n => {
+      if (n.x == null || isNaN(n.x) || n.y == null || isNaN(n.y)) return;
+      const r = nodeRadius(n);
+      x0 = Math.min(x0, n.x - r);
+      y0 = Math.min(y0, n.y - r);
+      x1 = Math.max(x1, n.x + r);
+      y1 = Math.max(y1, n.y + r);
+    });
+
+    if (!isFinite(x0)) return;
+
+    const dx = x1 - x0 || 1;
+    const dy = y1 - y0 || 1;
+    const k = Math.min((W - pad * 2) / dx, (H - pad * 2) / dy, 4);
+    const tx = (W - k * (x0 + x1)) / 2;
+    const ty = (H - k * (y0 + y1)) / 2;
+
+    svgSel.transition().duration(600)
+      .call(zoom.transform, d3.zoomIdentity.translate(tx, ty).scale(k));
   }
 
   // ── Drag handlers ─────────────────────────────────────────────────────────
@@ -480,6 +517,8 @@
       applyFocus(null);
       closePanel();
     });
+
+    document.getElementById('btn-fit').addEventListener('click', zoomToFit);
 
     window.addEventListener('resize', () => {
       const svg  = d3.select('#graph');
