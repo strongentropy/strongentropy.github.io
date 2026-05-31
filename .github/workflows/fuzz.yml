@@ -64,6 +64,12 @@ jobs:
           pnpm exec jazzer fuzz/timing-safe.fuzz.js --sync
           -- -max_total_time=30 -artifact_prefix=fuzz/crashes/timing-safe-
 
+      - name: Fuzz parseOS
+        working-directory: worker
+        run: >
+          pnpm exec jazzer fuzz/parse-os.fuzz.js fuzz/corpus/parse-os --sync
+          -- -max_total_time=30 -artifact_prefix=fuzz/crashes/parse-os-
+
       - name: Upload crash artifacts
         if: failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7

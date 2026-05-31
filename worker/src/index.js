@@ -56,6 +56,18 @@ function authChallenge() {
   });
 }
 
+function parseOS(ua) {
+  if (!ua) return null;
+  if (/iPhone/.test(ua))              return 'iOS';
+  if (/iPad/.test(ua))                return 'iPadOS';
+  if (/Android/.test(ua))             return 'Android';
+  if (/CrOS/.test(ua))                return 'ChromeOS';
+  if (/Windows/.test(ua))             return 'Windows';
+  if (/Macintosh|Mac OS X/.test(ua))  return 'macOS';
+  if (/Linux/.test(ua))               return 'Linux';
+  return null;
+}
+
 function timingSafeEqual(a, b) {
   const aBytes = new TextEncoder().encode(a);
   const bBytes = new TextEncoder().encode(b);
@@ -216,6 +228,8 @@ async function logVisit(request, env) {
     lon:     cf.longitude,
     ua:      (request.headers.get('User-Agent')  || '').slice(0, 512),
     ref:     (request.headers.get('Referer')     || '').slice(0, 512),
+    os:      parseOS(request.headers.get('User-Agent')),
+    device:  cf.deviceType || null,
     path:    url.pathname,
     method:  request.method,
   };

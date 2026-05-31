@@ -10,6 +10,8 @@
     asn:     { color: '#5b8af0', label: 'ASN',     baseR: 9  },
     org:     { color: '#8b5cf6', label: 'Org',     baseR: 9  },
     ua:      { color: '#ec4899', label: 'UA',      baseR: 8  },
+    os:      { color: '#14b8a6', label: 'OS',      baseR: 8  },
+    device:  { color: '#a78bfa', label: 'Device',  baseR: 7  },
     path:    { color: '#64748b', label: 'Path',    baseR: 7  },
     ref:     { color: '#06b6d4', label: 'Ref',     baseR: 7  },
   };
@@ -75,6 +77,8 @@
       const orgId     = e.org    ? `org:${e.org}`            : null;
       const uaLabel   = parseUA(e.ua);
       const uaId      = e.ua    ? `ua:${uaLabel}`            : null;
+      const osId      = e.os    ? `os:${e.os}`               : null;
+      const deviceId  = e.device ? `device:${e.device}`      : null;
       const pathId    = (e.path && e.path !== '/') ? `path:${e.path}` : null;
       let refId       = null;
       if (e.ref) {
@@ -87,6 +91,8 @@
       if (asnId)     addNode(asnId,     'asn',     `ASN ${e.asn}`, String(e.asn));
       if (orgId)     addNode(orgId,     'org',     e.org,     e.org);
       if (uaId)      addNode(uaId,      'ua',      uaLabel,   e.ua);
+      if (osId)      addNode(osId,      'os',      e.os,      e.os);
+      if (deviceId)  addNode(deviceId,  'device',  e.device,  e.device);
       if (pathId)    addNode(pathId,    'path',    e.path,    e.path);
       if (refId)     addNode(refId,     'ref',     refId.replace('ref:',''), refId.replace('ref:',''));
 
@@ -95,6 +101,8 @@
       if (asnId)     addEdge(ipId, asnId);
       if (orgId)     { addEdge(ipId, orgId); if (asnId) addEdge(asnId, orgId); }
       if (uaId)      addEdge(ipId, uaId);
+      if (osId)      { addEdge(ipId, osId); if (uaId) addEdge(uaId, osId); }
+      if (deviceId)  { addEdge(ipId, deviceId); if (osId) addEdge(osId, deviceId); }
       if (pathId)    addEdge(ipId, pathId);
       if (refId)     addEdge(ipId, refId);
     }

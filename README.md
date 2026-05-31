@@ -112,7 +112,7 @@ All workflows run on every push to `main` and weekly. Results are in the [Action
 | Workflow | What it tests | Schedule |
 |---|---|---|
 | **CodeQL** | Static analysis of JavaScript for security vulnerabilities | Every push, every PR, weekly Mon 06:00 UTC |
-| **Fuzz** | jazzer.js fuzzing of `parseUA`, `buildGraph`, `btoaUnicode/atobUnicode`, `timingSafeEqual` | Every push, every PR, weekly Mon 07:00 UTC |
+| **Fuzz** | jazzer.js fuzzing of `parseUA`, `parseOS`, `buildGraph`, `btoaUnicode/atobUnicode`, `timingSafeEqual` | Every push, every PR, weekly Mon 07:00 UTC |
 | **Dependency Audit** | `ppnpm audit --audit-level=moderate` on worker dependencies | On `pnpm-lock.yaml` changes, weekly Mon 06:00 UTC |
 | **OpenSSF Scorecard** | Supply chain security posture across 18 checks | Every push to `main`, weekly Mon 06:00 UTC |
 
