@@ -20,13 +20,19 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          version: 9
+
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: worker/pnpm-lock.yaml
 
       - name: Install dependencies
         working-directory: worker
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Create crash output directory
         run: mkdir -p worker/fuzz/crashes
@@ -34,25 +40,25 @@ jobs:
       - name: Fuzz parseUA
         working-directory: worker
         run: >
-          npx jazzer fuzz/parse-ua.fuzz.js fuzz/corpus/parse-ua --sync
+          pnpm exec jazzer fuzz/parse-ua.fuzz.js fuzz/corpus/parse-ua --sync
           -- -max_total_time=30 -artifact_prefix=fuzz/crashes/parse-ua-
 
       - name: Fuzz buildGraph
         working-directory: worker
         run: >
-          npx jazzer fuzz/build-graph.fuzz.js fuzz/corpus/build-graph --sync
+          pnpm exec jazzer fuzz/build-graph.fuzz.js fuzz/corpus/build-graph --sync
           -- -max_total_time=30 -artifact_prefix=fuzz/crashes/build-graph-
 
       - name: Fuzz unicode codec
         working-directory: worker
         run: >
-          npx jazzer fuzz/unicode-codec.fuzz.js --sync
+          pnpm exec jazzer fuzz/unicode-codec.fuzz.js --sync
           -- -max_total_time=30 -artifact_prefix=fuzz/crashes/unicode-codec-
 
       - name: Fuzz timingSafeEqual
         working-directory: worker
         run: >
-          npx jazzer fuzz/timing-safe.fuzz.js --sync
+          pnpm exec jazzer fuzz/timing-safe.fuzz.js --sync
           -- -max_total_time=30 -artifact_prefix=fuzz/crashes/timing-safe-
 
       - name: Upload crash artifacts

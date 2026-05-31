@@ -113,10 +113,10 @@ All workflows run on every push to `main` and weekly. Results are in the [Action
 |---|---|---|
 | **CodeQL** | Static analysis of JavaScript for security vulnerabilities | Every push, every PR, weekly Mon 06:00 UTC |
 | **Fuzz** | jazzer.js fuzzing of `parseUA`, `buildGraph`, `btoaUnicode/atobUnicode`, `timingSafeEqual` | Every push, every PR, weekly Mon 07:00 UTC |
-| **Dependency Audit** | `npm audit --audit-level=moderate` on worker dependencies | On `package-lock.json` changes, weekly Mon 06:00 UTC |
+| **Dependency Audit** | `ppnpm audit --audit-level=moderate` on worker dependencies | On `pnpm-lock.yaml` changes, weekly Mon 06:00 UTC |
 | **OpenSSF Scorecard** | Supply chain security posture across 18 checks | Every push to `main`, weekly Mon 06:00 UTC |
 
-`Analyze (javascript)` and `npm audit` are required branch protection status checks — all pushes must pass both before merge.
+`Analyze (javascript)` and `pnpm audit` are required branch protection status checks — all pushes must pass both before merge.
 
 ### Smoke tests
 
@@ -150,5 +150,5 @@ This project has a single human maintainer. The reviewer is AI and therefore doe
 
 - All commits are GPG-signed by the maintainer
 - Branch protection blocks force-push and branch deletion
-- Required CI status checks (CodeQL, fuzzing, npm audit) must pass before merge
+- Required CI status checks (CodeQL, fuzzing, pnpm audit) must pass before merge
 - gitleaks pre-commit hook scans every staged commit for secret exposure

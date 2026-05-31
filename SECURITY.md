@@ -98,7 +98,7 @@ All changes to the codebase are automatically evaluated against this policy on e
 
 ## SCA Remediation Policy
 
-Software Composition Analysis (SCA) is performed continuously via `npm audit` (CI on every push and weekly) and at release time via the VEX document.
+Software Composition Analysis (SCA) is performed continuously via `pnpm audit` (CI on every push and weekly) and at release time via the VEX document.
 
 ### Vulnerability thresholds
 
@@ -111,7 +111,7 @@ Software Composition Analysis (SCA) is performed continuously via `npm audit` (C
 
 Vulnerabilities confirmed non-exploitable in this project's context (e.g. a server-side vuln in a browser-only dependency) are documented in the VEX document with justification and exempt from the above deadlines.
 
-The CI audit gate (`npm audit --audit-level=moderate`) will fail the build for moderate and above, blocking deployment until resolved.
+The CI audit gate (`pnpm audit --audit-level=moderate`) will fail the build for moderate and above, blocking deployment until resolved.
 
 All changes to the codebase are automatically evaluated against this policy on every push via `audit.yml`. Any malicious or vulnerable dependency at or above the threshold blocks merge.
 
@@ -127,12 +127,12 @@ License compliance is reviewed manually at each release as part of the `make rel
 
 ### Pre-release SCA review
 
-All SCA findings are reviewed as part of the `make release` checklist before any release tag is created. Unresolved vulnerabilities at or above the Moderate threshold must be patched, removed, or documented as non-exploitable in the VEX document before tagging. The release workflow generates a VEX document from `npm audit` output and attaches it to the release; if vulnerabilities exist at tag time, the VEX will carry `status: under_investigation` until each is resolved or dismissed.
+All SCA findings are reviewed as part of the `make release` checklist before any release tag is created. Unresolved vulnerabilities at or above the Moderate threshold must be patched, removed, or documented as non-exploitable in the VEX document before tagging. The release workflow generates a VEX document from `pnpm audit` output and attaches it to the release; if vulnerabilities exist at tag time, the VEX will carry `status: under_investigation` until each is resolved or dismissed.
 
 ## Vulnerability Exploitability eXchange (VEX)
 
 Known vulnerabilities in dependencies that do not affect this project are documented in OpenVEX format in the `vex/` directory and attached as `vex.openvex.json` to each GitHub release alongside the SBOM.
 
-VEX documents are generated automatically by the release workflow using `npm audit`. If vulnerabilities are found at release time, the VEX document will carry `status: under_investigation` until each vulnerability is assessed and resolved or marked non-exploitable with justification.
+VEX documents are generated automatically by the release workflow using `pnpm audit`. If vulnerabilities are found at release time, the VEX document will carry `status: under_investigation` until each vulnerability is assessed and resolved or marked non-exploitable with justification.
 
 The current release VEX document is at [`vex/v1.0.0.openvex.json`](./vex/v1.0.0.openvex.json).

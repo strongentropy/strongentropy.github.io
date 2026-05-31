@@ -5,10 +5,10 @@ on:
     branches:
       - main
     paths:
-      - 'worker/package-lock.json'
+      - 'worker/pnpm-lock.yaml'
   pull_request:
     paths:
-      - 'worker/package-lock.json'
+      - 'worker/pnpm-lock.yaml'
   schedule:
     - cron: '0 6 * * 1'  # weekly Monday 06:00 UTC
 
@@ -16,7 +16,7 @@ permissions: read-all
 
 jobs:
   audit:
-    name: npm audit
+    name: pnpm audit
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -24,14 +24,20 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          version: 9
+
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: worker/pnpm-lock.yaml
 
       - name: Install dependencies
         working-directory: worker
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Run audit
         working-directory: worker
-        run: npm audit --audit-level=moderate
+        run: pnpm audit --audit-level=moderate
