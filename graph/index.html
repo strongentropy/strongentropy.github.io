@@ -92,7 +92,6 @@
     .filter-btn.inactive { opacity: 0.3; }
 
     #status {
-      margin-left: auto;
       font-size: 0.68rem;
       color: var(--dim);
       white-space: nowrap;
@@ -273,8 +272,10 @@
     <option value="365">Last year</option>
   </select>
   <div id="filters"></div>
-  <span id="latest" style="font-size:0.65rem;color:var(--dim);white-space:nowrap"></span>
-  <span id="status">Loading…</span>
+  <span id="right-info" style="margin-left:auto;display:flex;align-items:center;gap:1rem;flex-shrink:0">
+    <span id="latest" style="font-size:0.65rem;color:var(--muted);white-space:nowrap"></span>
+    <span id="status"></span>
+  </span>
 </div>
 
 <div id="canvas-wrap">
