@@ -39,8 +39,8 @@ This project follows a **rolling release** model — the live site always runs t
 
 | Release | Status | Supported until |
 |---|---|---|
-| `v1.0.0` (latest) | Active | Superseded by next release |
-| Older releases | End of life | No further support |
+| `v1.1.0` (latest) | Active | Superseded by next release |
+| `v1.0.0` | End of life | No further support |
 
 Only the **latest release** receives security fixes — no backports. Bug fixes are applied to `main` only. Users self-hosting any part of this codebase should upgrade promptly when a new release is published.
 

@@ -135,4 +135,4 @@ Known vulnerabilities in dependencies that do not affect this project are docume
 
 VEX documents are generated automatically by the release workflow using `pnpm audit`. If vulnerabilities are found at release time, the VEX document will carry `status: under_investigation` until each vulnerability is assessed and resolved or marked non-exploitable with justification.
 
-The current release VEX document is at [`vex/v1.0.0.openvex.json`](./vex/v1.0.0.openvex.json).
+The current release VEX document is at [`vex/v1.1.0.openvex.json`](./vex/v1.1.0.openvex.json).
