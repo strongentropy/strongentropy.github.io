@@ -1,4 +1,4 @@
-.PHONY: help deploy deploy-site deploy-worker test test-headers test-auth test-flush open graph flush hooks
+.PHONY: help deploy deploy-site deploy-worker test test-headers test-auth test-flush open graph flush hooks release
 
 help:
 	@echo "Strong Entropy — available targets:"
@@ -14,6 +14,7 @@ help:
 	@echo ""
 	@echo "  flush           Trigger on-demand KV → GitHub log flush"
 	@echo "  hooks           Install git pre-commit hooks"
+	@echo "  release         Release checklist + tag instructions (VERSION=vX.Y.Z)"
 	@echo ""
 	@echo "  open            Open strongentropy.com in browser"
 	@echo "  graph           Open /graph/ in browser"
@@ -89,3 +90,17 @@ open:
 
 graph:
 	open $(SITE_URL)/graph/
+
+# ── Release ───────────────────────────────────────────────────────────────────
+
+release:
+	@[ -n "$(VERSION)" ] || (echo "Usage: make release VERSION=v1.x.x" && exit 1)
+	@echo "Checklist before tagging $(VERSION):"
+	@echo "  1. Update README.md release support table (mark previous release EOL)"
+	@echo "  2. Ensure all CI checks pass on main"
+	@echo "  3. Run: make test"
+	@echo ""
+	@echo "When ready, run:"
+	@echo "  git tag -s $(VERSION) -m '$(VERSION) — <summary>'"
+	@echo "  git push origin $(VERSION)"
+	@echo "  gh release create $(VERSION) --title '$(VERSION)' --notes '<notes>'"
