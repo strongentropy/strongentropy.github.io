@@ -51,11 +51,22 @@ For security vulnerabilities, do not open a public issue — follow the [Securit
 
 ### Contributing
 
-Pull requests are welcome. This is a single-maintainer project; significant changes should be discussed in an issue before a PR is submitted. All contributions must:
+Pull requests are welcome. This is a single-maintainer project; significant changes should be discussed in an issue before a PR is submitted.
 
-- Pass existing CI checks (CodeQL, fuzzing, `pnpm audit`)
-- Include tests for new input-processing functions or API paths (see [Testing](#testing))
-- Be signed off with a GPG-signed commit if you have a signing key configured
+#### Coding standards
+
+- **Style:** Match the existing code style — 2-space indentation, single quotes, no semicolons in Worker source (`src/index.js`). No formatter is enforced; consistency with surrounding code is the standard.
+- **No dead code:** Remove unused variables, functions, and imports. Do not leave commented-out code.
+- **Comments:** Only where the *why* is non-obvious. Do not describe what the code does.
+- **Security:** All input received at Worker trust boundaries must be validated. Do not introduce `eval`, `innerHTML`, or dynamic `require`/`import` from untrusted sources.
+- **Commits:** Use [Conventional Commits](https://www.conventionalcommits.org/) prefixes (`feat:`, `fix:`, `docs:`, `chore:`, etc.). GPG-signed commits are strongly preferred.
+
+#### CI requirements (all must pass)
+
+- `Analyze (javascript)` — CodeQL static analysis; no new high/critical findings
+- `pnpm audit` — no moderate or above vulnerabilities in worker dependencies
+- `Fuzz` — jazzer.js fuzz targets must not crash on new code paths
+- `Gitleaks` — no secrets in staged files
 
 ---
 
