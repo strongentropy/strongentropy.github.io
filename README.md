@@ -31,6 +31,34 @@ gpg --fingerprint info@strongentropy.com
 
 ---
 
+## Obtaining, Feedback, and Contributing
+
+### Obtain
+
+Clone the repository or download a tagged release:
+
+```bash
+git clone https://github.com/strongentropy/strongentropy.github.io.git
+```
+
+Tagged releases with signed artifacts are available on the [Releases page](https://github.com/strongentropy/strongentropy.github.io/releases).
+
+### Bug reports and feedback
+
+Open an issue on the [GitHub issue tracker](https://github.com/strongentropy/strongentropy.github.io/issues). Bug reports, enhancement requests, and general feedback are welcome in English.
+
+For security vulnerabilities, do not open a public issue — follow the [Security Policy](./SECURITY.md) instead.
+
+### Contributing
+
+Pull requests are welcome. This is a single-maintainer project; significant changes should be discussed in an issue before a PR is submitted. All contributions must:
+
+- Pass existing CI checks (CodeQL, fuzzing, `pnpm audit`)
+- Include tests for new input-processing functions or API paths (see [Testing](#testing))
+- Be signed off with a GPG-signed commit if you have a signing key configured
+
+---
+
 ## Releases
 
 ### Support policy
