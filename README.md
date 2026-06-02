@@ -143,6 +143,99 @@ Minor changes (documentation, styling, configuration) are exempt.
 
 ---
 
+## API Reference
+
+The Cloudflare Worker exposes the following external interfaces. All endpoints are served at `https://strongentropy.com`.
+
+### `GET /` — Static site proxy
+
+Proxies requests to the GitHub Pages origin. No authentication required. All standard security headers are applied to the response.
+
+**Input:** Any path not matched by the routes below. Static asset requests (`.css`, `.js`, `.png`, `.svg`, etc.) are served directly.
+
+**Output:** GitHub Pages response with added security headers (`Strict-Transport-Security`, `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Content-Security-Policy`, etc.).
+
+**Errors:**
+- `403 Forbidden` — missing or empty `User-Agent` header
+- `429 Too Many Requests` — rate limit exceeded (60 requests per 60-second window per IP)
+
+---
+
+### `GET /api/logs?days=N` — Log data API
+
+Returns visitor log entries for the specified time window as a JSON array.
+
+**Authentication:** HTTP Basic Auth (`Authorization: Basic <base64(admin:PASSWORD)>`). Credentials checked with constant-time comparison.
+
+**Input:**
+| Parameter | Type | Default | Range | Description |
+|---|---|---|---|---|
+| `days` | integer (query) | `30` | `1–365` | Number of days of log history to return |
+
+**Output:** `200 OK` with `Content-Type: application/json`. Body is a JSON array of log entry objects:
+
+```json
+[
+  {
+    "ts":      "<ISO 8601 timestamp>",
+    "ip":      "<client IP>",
+    "country": "<ISO 3166-1 alpha-2 country code>",
+    "city":    "<city name>",
+    "asn":     "<ASN string, e.g. AS13335>",
+    "org":     "<AS organization name>",
+    "lat":     "<latitude>",
+    "lon":     "<longitude>",
+    "ua":      "<User-Agent string, truncated to 512 chars>",
+    "ref":     "<Referer header, truncated to 512 chars>",
+    "os":      "<parsed OS name or null>",
+    "device":  "<Cloudflare device type or null>",
+    "path":    "<request path>",
+    "method":  "<HTTP method>"
+  }
+]
+```
+
+**Errors:**
+- `401 Unauthorized` — missing or invalid credentials (includes `WWW-Authenticate` header)
+- `403 Forbidden` — `Origin` header present but not `https://strongentropy.com`
+
+---
+
+### `GET /flush?token=TOKEN` — On-demand log flush
+
+Triggers an immediate flush of buffered KV log entries to the private GitHub log repository. Normally this runs on a daily cron schedule; this endpoint allows manual triggering.
+
+**Authentication:** Bearer token via `token` query parameter, checked with constant-time comparison.
+
+**Input:**
+| Parameter | Type | Description |
+|---|---|---|
+| `token` | string (query) | `FLUSH_TOKEN` secret value |
+
+**Output:** `202 Accepted` with `Content-Type: application/json`:
+```json
+{ "ok": true, "message": "Flush triggered" }
+```
+The flush runs asynchronously via `waitUntil` — a `202` response means the flush was triggered, not that it completed.
+
+**Errors:**
+- `403 Forbidden` — missing or invalid token
+
+---
+
+### `GET /graph/` — Visitor graph viewer
+
+Serves the authenticated graph interface (static HTML/JS from GitHub Pages) with a relaxed Content Security Policy that permits inline scripts from the same origin.
+
+**Authentication:** HTTP Basic Auth (same credentials as `/api/logs`).
+
+**Output:** GitHub Pages response for `/graph/index.html` with graph-specific CSP applied.
+
+**Errors:**
+- `401 Unauthorized` — missing or invalid credentials
+
+---
+
 ## Governance
 
 ### Code review
