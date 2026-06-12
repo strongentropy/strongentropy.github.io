@@ -91,6 +91,48 @@ function isAuthenticated(request, env) {
   } catch { return false; }
 }
 
+// Scanner probe paths observed in live logs: .env variants, .git, dotfiles,
+// WordPress/PHP probes, framework config files. /.well-known is excluded —
+// it's the only dotfile path with legitimate traffic.
+const PROBE_RE = new RegExp(
+  '^/(?!\\.well-known/)\\.' +          // dotfiles: /.env, /.git, /.aws, /.gitlab-ci.yml
+  '|\\.env' +                           // .env anywhere: /backend/.env, /api/.env.bak
+  '|\\.php$' +                          // /info.php, /config.php
+  '|^/wp([-/]|$)|^/wordpress' +         // WordPress probes incl. /wp-json, /wp/
+  '|/wp-includes' +
+  '|phpunit|/_profiler|/actuator' +
+  '|appsettings|docker-compose' +
+  '|^/env(\\.|$)' +                     // /env, /env.txt
+  '|/\\.git(/|$)' +
+  '|aws\\.env|\\.aws/' +
+  '|config\\.(json|php|ya?ml)$',
+  'i'
+);
+
+async function reportScanner(ip, request, env) {
+  if (!env.ABUSEIPDB_KEY || !ip) return;
+  const dedupKey = `reported:${ip}`;
+  if (await env.VISITS.get(dedupKey)) return;
+  await env.VISITS.put(dedupKey, '1', { expirationTtl: 86400 });
+
+  const url = new URL(request.url);
+  const ua = (request.headers.get('User-Agent') || '').slice(0, 200);
+  const comment =
+    `Web app probe on static site: ${request.method} ${url.pathname} | UA: ${ua}`.slice(0, 1024);
+
+  // Categories: 19 = Bad Web Bot, 21 = Web App Attack
+  await fetch('https://api.abuseipdb.com/api/v2/report', {
+    method: 'POST',
+    headers: { Key: env.ABUSEIPDB_KEY, Accept: 'application/json' },
+    body: new URLSearchParams({
+      ip,
+      categories: '19,21',
+      comment,
+      timestamp: new Date().toISOString(),
+    }),
+  });
+}
+
 // Per-isolate rate-limit cache (issue #14). KV is read once per window per
 // isolate and written every RL_SYNC_INTERVAL requests instead of every request.
 // Cross-isolate counts are approximate; the GitHub-flush durability model and
@@ -143,6 +185,13 @@ export default {
 
     const isAsset = /\.(ico|svg|png|jpg|jpeg|css|js|woff|woff2|map|txt)$/.test(url.pathname);
     if (!isOwner && !isAsset && await checkRateLimit(ip, env)) return block(429, 'Too Many Requests');
+
+    // Scanner probes: report to AbuseIPDB, log, and 404 without touching origin
+    if (!isOwner && PROBE_RE.test(url.pathname)) {
+      ctx.waitUntil(reportScanner(ip, request, env));
+      ctx.waitUntil(logVisit(request, env));
+      return block(404, 'Not Found');
+    }
 
     // On-demand log flush — token auth
     if (url.pathname === '/flush') {
