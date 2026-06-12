@@ -116,9 +116,9 @@ async function reportScanner(ip, request, env) {
   await env.VISITS.put(dedupKey, '1', { expirationTtl: 86400 });
 
   const url = new URL(request.url);
-  const ua = (request.headers.get('User-Agent') || '').slice(0, 200);
-  const comment =
-    `Web app probe on static site: ${request.method} ${url.pathname} | UA: ${ua}`.slice(0, 1024);
+  const prefix = `Malicious web recon: ${url.pathname} | UA: `;
+  const ua = (request.headers.get('User-Agent') || '').slice(0, Math.max(0, 1024 - prefix.length));
+  const comment = (prefix + ua).slice(0, 1024);
 
   // Categories: 19 = Bad Web Bot, 21 = Web App Attack
   await fetch('https://api.abuseipdb.com/api/v2/report', {
