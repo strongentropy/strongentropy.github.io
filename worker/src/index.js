@@ -113,7 +113,6 @@ async function reportScanner(ip, request, env) {
   if (!env.ABUSEIPDB_KEY || !ip) return;
   const dedupKey = `reported:${ip}`;
   if (await env.VISITS.get(dedupKey)) return;
-  await env.VISITS.put(dedupKey, '1', { expirationTtl: 86400 });
 
   const url = new URL(request.url);
   const prefix = `Malicious web recon: ${url.pathname} | UA: `;
@@ -121,7 +120,7 @@ async function reportScanner(ip, request, env) {
   const comment = (prefix + ua).slice(0, 1024);
 
   // Categories: 19 = Bad Web Bot, 21 = Web App Attack
-  await fetch('https://api.abuseipdb.com/api/v2/report', {
+  const res = await fetch('https://api.abuseipdb.com/api/v2/report', {
     method: 'POST',
     headers: { Key: env.ABUSEIPDB_KEY, Accept: 'application/json' },
     body: new URLSearchParams({
@@ -131,6 +130,8 @@ async function reportScanner(ip, request, env) {
       timestamp: new Date().toISOString(),
     }),
   });
+  // Only mark as reported on success so transient failures can retry
+  if (res.ok) await env.VISITS.put(dedupKey, '1', { expirationTtl: 86400 });
 }
 
 // Per-isolate rate-limit cache (issue #14). KV is read once per window per
@@ -193,9 +194,9 @@ export default {
       return block(404, 'Not Found');
     }
 
-    // On-demand log flush — token auth
+    // On-demand log flush — token auth via header (query strings end up in logs)
     if (url.pathname === '/flush') {
-      const token = url.searchParams.get('token');
+      const token = request.headers.get('X-Flush-Token');
       if (!token || !timingSafeEqual(token, env.FLUSH_TOKEN)) return block(403, 'Forbidden');
       ctx.waitUntil(flushToGitHub(env));
       return new Response(JSON.stringify({ ok: true, message: 'Flush triggered' }), {
@@ -208,6 +209,8 @@ export default {
     if (url.pathname === '/api/logs') {
       const origin = request.headers.get('Origin');
       if (origin && origin !== 'https://strongentropy.com') return block(403, 'Forbidden');
+      const fetchSite = request.headers.get('Sec-Fetch-Site');
+      if (fetchSite && !['same-origin', 'none'].includes(fetchSite)) return block(403, 'Forbidden');
       if (!isAuthenticated(request, env)) return authChallenge();
       return serveLogs(url, env);
     }
@@ -235,6 +238,9 @@ async function proxyToGitHubPages(request, env) {
 
   const headers = new Headers(request.headers);
   headers.set('Host', 'strongentropy.github.io');
+  // Don't leak dashboard credentials to the upstream origin
+  headers.delete('Authorization');
+  headers.delete('Cookie');
 
   const proxyReq = new Request(originUrl.toString(), {
     method: request.method,
