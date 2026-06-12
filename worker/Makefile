@@ -38,7 +38,7 @@ flush:
 # On-demand flush via HTTP — requires FLUSH_TOKEN env var
 # Usage: FLUSH_TOKEN=yourtoken make flush-url
 flush-url:
-	curl -s "https://strongentropy.com/flush?token=$(FLUSH_TOKEN)" | python3 -m json.tool
+	curl -s -H "X-Flush-Token: $(FLUSH_TOKEN)" "https://strongentropy.com/flush" | python3 -m json.tool
 
 # Tail live logs
 logs:
