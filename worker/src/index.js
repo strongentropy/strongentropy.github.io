@@ -91,12 +91,42 @@ function isAuthenticated(request, env) {
   } catch { return false; }
 }
 
+// Per-isolate rate-limit cache (issue #14). KV is read once per window per
+// isolate and written every RL_SYNC_INTERVAL requests instead of every request.
+// Cross-isolate counts are approximate; the GitHub-flush durability model and
+// generous limit make that acceptable.
+const RL_SYNC_INTERVAL = 10;
+const rlCache = new Map();
+
+function pruneRlCache(currentWindow) {
+  for (const key of rlCache.keys()) {
+    const win = parseInt(key.slice(key.lastIndexOf(':') + 1));
+    if (win < currentWindow) rlCache.delete(key);
+  }
+}
+
 async function checkRateLimit(ip, env) {
-  const key = `rl:${ip}`;
   const now = Math.floor(Date.now() / 1000);
-  const windowKey = `${key}:${Math.floor(now / RATE_WINDOW)}`;
-  const count = parseInt(await env.VISITS.get(windowKey) || '0') + 1;
-  await env.VISITS.put(windowKey, String(count), { expirationTtl: RATE_WINDOW * 2 });
+  const window = Math.floor(now / RATE_WINDOW);
+  const windowKey = `rl:${ip}:${window}`;
+
+  let state = rlCache.get(windowKey);
+  if (!state) {
+    pruneRlCache(window);
+    const kvCount = parseInt(await env.VISITS.get(windowKey) || '0');
+    state = { kvBase: kvCount, local: 0 };
+    rlCache.set(windowKey, state);
+  }
+
+  state.local++;
+  const count = state.kvBase + state.local;
+
+  if (state.local >= RL_SYNC_INTERVAL || count === RATE_LIMIT + 1) {
+    await env.VISITS.put(windowKey, String(count), { expirationTtl: RATE_WINDOW * 2 });
+    state.kvBase = count;
+    state.local = 0;
+  }
+
   return count > RATE_LIMIT;
 }
 
@@ -215,6 +245,15 @@ async function serveLogs(url, env) {
   });
 }
 
+// Per-isolate visit log buffer (issue #15). Entries accumulate in memory and
+// flush to KV in batches — one put per batch instead of per visit. Buffered
+// entries are lost on isolate eviction; KV is only staging for the GitHub
+// flush, so the loss tolerance is acceptable.
+const LOG_BUFFER_MAX = 25;
+const LOG_BUFFER_MAX_AGE_MS = 5 * 60 * 1000;
+const logBuffer = [];
+let logBufferSince = 0;
+
 async function logVisit(request, env) {
   const cf = request.cf || {};
   const url = new URL(request.url);
@@ -238,22 +277,39 @@ async function logVisit(request, env) {
     method:  request.method,
   };
 
+  if (logBuffer.length === 0) logBufferSince = Date.now();
+  logBuffer.push(entry);
+
+  if (logBuffer.length >= LOG_BUFFER_MAX || Date.now() - logBufferSince >= LOG_BUFFER_MAX_AGE_MS) {
+    await flushLogBuffer(env);
+  }
+}
+
+async function flushLogBuffer(env) {
+  if (logBuffer.length === 0) return;
+  const batch = logBuffer.splice(0, logBuffer.length);
   const key = `log:${Date.now()}:${crypto.randomUUID()}`;
-  await env.VISITS.put(key, JSON.stringify(entry), { expirationTtl: 604800 });
+  await env.VISITS.put(key, JSON.stringify(batch), { expirationTtl: 604800 });
 }
 
 async function flushToGitHub(env) {
+  await flushLogBuffer(env);
+
   const list = await env.VISITS.list({ prefix: 'log:' });
   if (list.keys.length === 0) return;
 
-  const entries = await Promise.all(
+  const results = await Promise.all(
     list.keys.map(async (k) => {
       const val = await env.VISITS.get(k.name);
-      if (!val) return null;
-      try { return { key: k.name, data: JSON.parse(val) }; } catch { return null; }
+      if (!val) return [];
+      try {
+        const parsed = JSON.parse(val);
+        const items = Array.isArray(parsed) ? parsed : [parsed];
+        return items.map((data) => ({ key: k.name, data }));
+      } catch { return []; }
     })
   );
-  const valid = entries.filter(Boolean);
+  const valid = results.flat();
 
   const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
   const byDate = {};
@@ -280,7 +336,8 @@ async function flushToGitHub(env) {
     await putGitHubFile(env, path, content, sha, `logs: ${date} (${dateEntries.length} visits)`);
   }
 
-  await Promise.all(valid.map((e) => env.VISITS.delete(e.key)));
+  const keysToDelete = [...new Set(valid.map((e) => e.key))];
+  await Promise.all(keysToDelete.map((key) => env.VISITS.delete(key)));
 }
 
 async function getGitHubFile(env, path) {
