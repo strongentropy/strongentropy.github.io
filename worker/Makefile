@@ -1,4 +1,4 @@
-.PHONY: install dev deploy kv-create secret secret-graph secret-flush flush flush-url logs
+.PHONY: install dev deploy kv-create secret secret-graph secret-flush secret-abuseipdb flush flush-url logs
 
 install:
 	npm install
@@ -26,6 +26,10 @@ secret-graph:
 # Set on-demand flush token
 secret-flush:
 	npx wrangler secret put FLUSH_TOKEN
+
+# Set AbuseIPDB API key (scanner reporting)
+secret-abuseipdb:
+	npx wrangler secret put ABUSEIPDB_KEY
 
 # Manually trigger daily flush via cron (wrangler)
 flush:
