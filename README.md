@@ -240,16 +240,16 @@ Returns visitor log entries for the specified time window as a JSON array.
 
 ---
 
-### `GET /flush?token=TOKEN` — On-demand log flush
+### `GET /flush` — On-demand log flush
 
 Triggers an immediate flush of buffered KV log entries to the private GitHub log repository. Normally this runs on a daily cron schedule; this endpoint allows manual triggering.
 
-**Authentication:** Bearer token via `token` query parameter, checked with constant-time comparison.
+**Authentication:** Token via `X-Flush-Token` request header, checked with constant-time comparison. (Header-based to keep the token out of access logs and browser history.)
 
 **Input:**
 | Parameter | Type | Description |
 |---|---|---|
-| `token` | string (query) | `FLUSH_TOKEN` secret value |
+| `X-Flush-Token` | string (header) | `FLUSH_TOKEN` secret value |
 
 **Output:** `202 Accepted` with `Content-Type: application/json`:
 ```json
