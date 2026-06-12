@@ -66,7 +66,7 @@ test-auth:
 test-flush:
 	@echo "=== Flush Endpoint ==="
 	@[ -n "$(FLUSH_TOKEN)" ] || (echo "SKIP  FLUSH_TOKEN not set" && exit 0)
-	@RESP=$$(curl -s "$(SITE_URL)/flush?token=$(FLUSH_TOKEN)"); \
+	@RESP=$$(curl -s -H "X-Flush-Token: $(FLUSH_TOKEN)" "$(SITE_URL)/flush"); \
 	  echo "$$RESP" | python3 -c "import sys,json; d=json.load(sys.stdin); exit(0 if d.get('ok') else 1)" \
 	  && echo "PASS  /flush triggered OK" \
 	  || (echo "FAIL  /flush response: $$RESP" && exit 1)
@@ -76,7 +76,7 @@ test-flush:
 
 flush:
 	@[ -n "$(FLUSH_TOKEN)" ] || (echo "Set FLUSH_TOKEN in .env.local or environment" && exit 1)
-	@curl -s "$(SITE_URL)/flush?token=$(FLUSH_TOKEN)" | python3 -m json.tool
+	@curl -s -H "X-Flush-Token: $(FLUSH_TOKEN)" "$(SITE_URL)/flush" | python3 -m json.tool
 
 # ── Git hooks ─────────────────────────────────────────────────────────────────
 
