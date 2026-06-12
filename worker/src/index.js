@@ -301,13 +301,14 @@ async function serveLogs(url, env) {
 }
 
 // Per-isolate visit log buffer (issue #15). Entries accumulate in memory and
-// flush to KV in batches — one put per batch instead of per visit. Buffered
-// entries are lost on isolate eviction; KV is only staging for the GitHub
-// flush, so the loss tolerance is acceptable.
+// flush to KV in batches — one put per batch instead of per visit. A short
+// waitUntil-held delay after each visit guarantees the buffer reaches KV even
+// when the isolate is evicted right after (sparse traffic never hit the old
+// size/age thresholds, silently dropping every entry).
 const LOG_BUFFER_MAX = 25;
-const LOG_BUFFER_MAX_AGE_MS = 5 * 60 * 1000;
+const LOG_FLUSH_DELAY_MS = 10 * 1000;
 const logBuffer = [];
-let logBufferSince = 0;
+let logFlushPending = false;
 
 async function logVisit(request, env) {
   const cf = request.cf || {};
@@ -332,12 +333,21 @@ async function logVisit(request, env) {
     method:  request.method,
   };
 
-  if (logBuffer.length === 0) logBufferSince = Date.now();
   logBuffer.push(entry);
 
-  if (logBuffer.length >= LOG_BUFFER_MAX || Date.now() - logBufferSince >= LOG_BUFFER_MAX_AGE_MS) {
-    await flushLogBuffer(env);
+  if (logBuffer.length >= LOG_BUFFER_MAX) return flushLogBuffer(env);
+
+  // Debounced flush: the awaited delay runs inside the caller's waitUntil,
+  // keeping the isolate alive so the batch always lands in KV. Concurrent
+  // visits during the window coalesce into the pending flush.
+  if (logFlushPending) return;
+  logFlushPending = true;
+  try {
+    await new Promise((resolve) => setTimeout(resolve, LOG_FLUSH_DELAY_MS));
+  } finally {
+    logFlushPending = false;
   }
+  await flushLogBuffer(env);
 }
 
 async function flushLogBuffer(env) {
