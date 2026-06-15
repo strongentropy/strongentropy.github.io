@@ -222,7 +222,7 @@ export default {
       return applySecurityHeaders(response, true);
     }
 
-    if (!isOwner) ctx.waitUntil(logVisit(request, env));
+    ctx.waitUntil(logVisit(request, env, isOwner ? { owner: true } : {}));
     const response = await proxyToGitHubPages(request, env);
     return applySecurityHeaders(response);
   },
