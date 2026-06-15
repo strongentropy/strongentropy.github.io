@@ -300,15 +300,12 @@ async function serveLogs(url, env) {
   });
 }
 
-// Per-isolate visit log buffer (issue #15). Entries accumulate in memory and
-// flush to KV in batches — one put per batch instead of per visit. A short
-// waitUntil-held delay after each visit guarantees the buffer reaches KV even
-// when the isolate is evicted right after (sparse traffic never hit the old
-// size/age thresholds, silently dropping every entry).
+// Per-isolate visit log buffer. Burst visits within a single isolate coalesce
+// into one KV put (up to LOG_BUFFER_MAX). Each visit flushes immediately so
+// nothing is lost when the isolate is evicted — setTimeout-based debouncing
+// proved unreliable because CF evicts idle isolates even during waitUntil.
 const LOG_BUFFER_MAX = 25;
-const LOG_FLUSH_DELAY_MS = 10 * 1000;
 const logBuffer = [];
-let logFlushPending = false;
 
 async function logVisit(request, env, meta = {}) {
   const cf = request.cf || {};
@@ -335,19 +332,6 @@ async function logVisit(request, env, meta = {}) {
   };
 
   logBuffer.push(entry);
-
-  if (logBuffer.length >= LOG_BUFFER_MAX) return flushLogBuffer(env);
-
-  // Debounced flush: the awaited delay runs inside the caller's waitUntil,
-  // keeping the isolate alive so the batch always lands in KV. Concurrent
-  // visits during the window coalesce into the pending flush.
-  if (logFlushPending) return;
-  logFlushPending = true;
-  try {
-    await new Promise((resolve) => setTimeout(resolve, LOG_FLUSH_DELAY_MS));
-  } finally {
-    logFlushPending = false;
-  }
   await flushLogBuffer(env);
 }
 
