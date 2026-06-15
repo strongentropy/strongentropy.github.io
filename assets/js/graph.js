@@ -57,9 +57,11 @@
     const nodeMap = new Map();
     const edgeMap = new Map();
 
-    function addNode(id, type, label, rawLabel) {
-      if (!nodeMap.has(id)) nodeMap.set(id, { id, type, label, rawLabel: rawLabel || label, count: 0 });
-      nodeMap.get(id).count++;
+    function addNode(id, type, label, rawLabel, flags = {}) {
+      if (!nodeMap.has(id)) nodeMap.set(id, { id, type, label, rawLabel: rawLabel || label, count: 0, scanner: false });
+      const n = nodeMap.get(id);
+      n.count++;
+      if (flags.scanner) n.scanner = true;
     }
 
     function addEdge(a, b) {
@@ -87,7 +89,7 @@
         try { refId = `ref:${new URL(e.ref).hostname}`; } catch {}
       }
 
-      addNode(ipId, 'ip', e.ip, e.ip);
+      addNode(ipId, 'ip', e.ip, e.ip, { scanner: !!e.scanner });
       if (countryId) addNode(countryId, 'country', e.country, e.country);
       if (cityId)    addNode(cityId,    'city',    e.city,    e.city);
       if (asnId)     addNode(asnId,     'asn',     `ASN ${e.asn}`, String(e.asn));
@@ -224,8 +226,9 @@
       .attr('r', nodeRadius)
       .attr('fill', d => TYPES[d.type]?.color ?? '#888')
       .attr('fill-opacity', 0.85)
-      .attr('stroke', d => TYPES[d.type]?.color ?? '#888')
-      .attr('stroke-opacity', 0.4);
+      .attr('stroke', d => d.scanner ? '#ff3333' : (TYPES[d.type]?.color ?? '#888'))
+      .attr('stroke-width', d => d.scanner ? 2.5 : 1)
+      .attr('stroke-opacity', d => d.scanner ? 0.9 : 0.4);
 
     nodeSelection = nodeG;
 
@@ -245,7 +248,7 @@
       .on('mouseover', (event, d) => {
         document.getElementById('tt-type').textContent  = TYPES[d.type]?.label ?? d.type;
         document.getElementById('tt-value').textContent = d.rawLabel;
-        document.getElementById('tt-count').textContent = `${d.count} visit${d.count !== 1 ? 's' : ''}`;
+        document.getElementById('tt-count').textContent = `${d.count} visit${d.count !== 1 ? 's' : ''}${d.scanner ? ' · ⚠ scanner' : ''}`;
         tooltip.classList.add('visible');
       })
       .on('mousemove', (event) => {

@@ -190,7 +190,7 @@ export default {
     // Scanner probes: report to AbuseIPDB, log, and 404 without touching origin
     if (!isOwner && PROBE_RE.test(url.pathname)) {
       ctx.waitUntil(reportScanner(ip, request, env));
-      ctx.waitUntil(logVisit(request, env));
+      ctx.waitUntil(logVisit(request, env, { scanner: true }));
       return block(404, 'Not Found');
     }
 
@@ -310,7 +310,7 @@ const LOG_FLUSH_DELAY_MS = 10 * 1000;
 const logBuffer = [];
 let logFlushPending = false;
 
-async function logVisit(request, env) {
+async function logVisit(request, env, meta = {}) {
   const cf = request.cf || {};
   const url = new URL(request.url);
 
@@ -331,6 +331,7 @@ async function logVisit(request, env) {
     device:  cf.deviceType || null,
     path:    url.pathname,
     method:  request.method,
+    ...meta,
   };
 
   logBuffer.push(entry);
