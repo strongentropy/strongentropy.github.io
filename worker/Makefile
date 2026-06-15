@@ -3,13 +3,15 @@
 install:
 	npm install
 
+WRANGLER = ./node_modules/.bin/wrangler --config wrangler.toml
+
 # Local dev (proxies through wrangler)
 dev:
-	npx wrangler dev
+	$(WRANGLER) dev
 
 # Deploy worker to Cloudflare
 deploy:
-	npx wrangler deploy
+	$(WRANGLER) deploy
 
 # One-time: create the KV namespace, then paste the id into wrangler.toml
 kv-create:
