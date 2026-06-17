@@ -6,3 +6,9 @@ worker/fuzz/crashes/
 worker/node_modules/
 sbom.cdx.json
 api/
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+!.env.example
