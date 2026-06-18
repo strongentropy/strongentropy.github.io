@@ -501,8 +501,20 @@
 
   // ── Main load ─────────────────────────────────────────────────────────────
   function setExportEnabled(on) {
-    document.getElementById('btn-export-csv').disabled = !on;
-    document.getElementById('btn-export-json').disabled = !on;
+    const btn = document.getElementById('btn-export');
+    btn.disabled = !on;
+    if (!on) closeExportMenu();
+  }
+
+  function closeExportMenu() {
+    document.getElementById('export-dropdown').classList.add('hidden');
+    document.getElementById('btn-export').setAttribute('aria-expanded', 'false');
+  }
+
+  function toggleExportMenu() {
+    const dd = document.getElementById('export-dropdown');
+    const open = dd.classList.toggle('hidden') === false;
+    document.getElementById('btn-export').setAttribute('aria-expanded', String(open));
   }
 
   async function load(days) {
@@ -580,8 +592,19 @@
 
     document.getElementById('btn-fit').addEventListener('click', zoomToFit);
 
-    document.getElementById('btn-export-csv').addEventListener('click', () => exportData('csv'));
-    document.getElementById('btn-export-json').addEventListener('click', () => exportData('json'));
+    document.getElementById('btn-export').addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleExportMenu();
+    });
+    document.querySelectorAll('.export-opt').forEach(opt => {
+      opt.addEventListener('click', (e) => {
+        e.stopPropagation();
+        exportData(opt.dataset.format);
+        closeExportMenu();
+      });
+    });
+    document.addEventListener('click', closeExportMenu);
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeExportMenu(); });
 
     window.addEventListener('resize', () => {
       const svg  = d3.select('#graph');

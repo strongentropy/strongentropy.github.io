@@ -92,7 +92,35 @@
     }
     .export-btn:hover:not(:disabled) { color: var(--accent); border-color: var(--accent); }
     .export-btn:disabled { opacity: 0.4; cursor: default; }
-    #export-group { display: flex; gap: 0.35rem; }
+
+    #export-menu { position: relative; }
+    #export-dropdown {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      min-width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+      z-index: 30;
+    }
+    #export-dropdown.hidden { display: none; }
+    .export-opt {
+      display: block;
+      width: 100%;
+      text-align: left;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.7rem;
+      letter-spacing: 0.04em;
+      padding: 0.35rem 0.75rem;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .export-opt:hover { background: var(--bg); color: var(--accent); }
 
     .filter-btn {
       font-family: inherit;
@@ -314,11 +342,14 @@
     <option value="90">Last 90 days</option>
     <option value="365">Last year</option>
   </select>
+  <div id="export-menu">
+    <button id="btn-export" class="export-btn" title="Export all visit data" aria-haspopup="true" aria-expanded="false" disabled>&#x2B07; Export &#x25BE;</button>
+    <div id="export-dropdown" class="hidden">
+      <button class="export-opt" data-format="csv">CSV</button>
+      <button class="export-opt" data-format="json">JSON</button>
+    </div>
+  </div>
   <div id="filters"></div>
-  <span id="export-group">
-    <button id="btn-export-csv" class="export-btn" title="Export all visit data as CSV" disabled>&#x2B07; CSV</button>
-    <button id="btn-export-json" class="export-btn" title="Export all visit data as JSON" disabled>&#x2B07; JSON</button>
-  </span>
   <span id="right-info" style="margin-left:auto;display:flex;align-items:center;gap:1rem;flex-shrink:0">
     <span id="latest" style="font-size:0.65rem;color:var(--muted);white-space:nowrap"></span>
     <span id="status"></span>
@@ -350,6 +381,6 @@
 </div>
 
 <script src="/assets/js/d3.min.js?v=7"></script>
-<script src="/assets/js/graph.js?v=4"></script>
+<script src="/assets/js/graph.js?v=5"></script>
 </body>
 </html>
