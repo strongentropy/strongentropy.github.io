@@ -76,6 +76,24 @@
       cursor: pointer;
     }
 
+    .export-btn {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.7rem;
+      letter-spacing: 0.04em;
+      padding: 0.3rem 0.6rem;
+      outline: none;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .export-btn:hover:not(:disabled) { color: var(--accent); border-color: var(--accent); }
+    .export-btn:disabled { opacity: 0.4; cursor: default; }
+    #export-group { display: flex; gap: 0.35rem; }
+
     .filter-btn {
       font-family: inherit;
       font-size: 0.65rem;
@@ -297,6 +315,10 @@
     <option value="365">Last year</option>
   </select>
   <div id="filters"></div>
+  <span id="export-group">
+    <button id="btn-export-csv" class="export-btn" title="Export all visit data as CSV" disabled>&#x2B07; CSV</button>
+    <button id="btn-export-json" class="export-btn" title="Export all visit data as JSON" disabled>&#x2B07; JSON</button>
+  </span>
   <span id="right-info" style="margin-left:auto;display:flex;align-items:center;gap:1rem;flex-shrink:0">
     <span id="latest" style="font-size:0.65rem;color:var(--muted);white-space:nowrap"></span>
     <span id="status"></span>
@@ -328,6 +350,6 @@
 </div>
 
 <script src="/assets/js/d3.min.js?v=7"></script>
-<script src="/assets/js/graph.js?v=3"></script>
+<script src="/assets/js/graph.js?v=4"></script>
 </body>
 </html>

@@ -18,6 +18,7 @@
 
   // ── State ─────────────────────────────────────────────────────────────────
   let allNodes = [], allLinks = [];
+  let allEntries = [], currentDays = 30;
   let activeTypes = new Set(Object.keys(TYPES));
   let focusedId = null;
   let simulation = null;
@@ -452,11 +453,65 @@
     document.getElementById('status').textContent = text;
   }
 
+  // ── Export ────────────────────────────────────────────────────────────────
+  const CSV_COLS = ['ts','ip','country','city','asn','org','lat','lon','os','device','method','path','ref','ua','scanner','owner'];
+
+  function csvCell(val) {
+    if (val == null) return '';
+    const s = String(val);
+    return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }
+
+  function toCSV(entries) {
+    const extra = [];
+    for (const e of entries) {
+      for (const k of Object.keys(e)) {
+        if (!CSV_COLS.includes(k) && !extra.includes(k)) extra.push(k);
+      }
+    }
+    const cols = CSV_COLS.concat(extra);
+    const lines = [cols.join(',')];
+    for (const e of entries) {
+      lines.push(cols.map(c => csvCell(e[c])).join(','));
+    }
+    return lines.join('\r\n');
+  }
+
+  function download(content, mime, ext) {
+    const stamp = new Date().toISOString().slice(0, 10);
+    const blob = new Blob([content], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `strongentropy-logs-${currentDays}d-${stamp}.${ext}`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function exportData(format) {
+    if (!allEntries.length) return;
+    if (format === 'json') {
+      download(JSON.stringify(allEntries, null, 2), 'application/json', 'json');
+    } else {
+      download(toCSV(allEntries), 'text/csv', 'csv');
+    }
+  }
+
   // ── Main load ─────────────────────────────────────────────────────────────
+  function setExportEnabled(on) {
+    document.getElementById('btn-export-csv').disabled = !on;
+    document.getElementById('btn-export-json').disabled = !on;
+  }
+
   async function load(days) {
     document.getElementById('loading').classList.remove('hidden');
     document.getElementById('loading-msg').textContent = 'Fetching logs…';
     focusedId = null;
+    currentDays = days;
+    allEntries = [];
+    setExportEnabled(false);
     closePanel();
 
     let entries = [];
@@ -478,6 +533,8 @@
     const { nodes, links } = buildGraph(entries);
     allNodes = nodes;
     allLinks = links;
+    allEntries = entries;
+    setExportEnabled(entries.length > 0);
 
     buildFilters(nodes);
     setStatus(`${nodes.length} nodes · ${links.length} edges · ${entries.length} visits`);
@@ -522,6 +579,9 @@
     });
 
     document.getElementById('btn-fit').addEventListener('click', zoomToFit);
+
+    document.getElementById('btn-export-csv').addEventListener('click', () => exportData('csv'));
+    document.getElementById('btn-export-json').addEventListener('click', () => exportData('json'));
 
     window.addEventListener('resize', () => {
       const svg  = d3.select('#graph');
