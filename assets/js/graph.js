@@ -477,25 +477,47 @@
     return lines.join('\r\n');
   }
 
-  function download(content, mime, ext) {
+  function download(content, mime, ext, suffix) {
     const stamp = new Date().toISOString().slice(0, 10);
     const blob = new Blob([content], { type: mime });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `strongentropy-logs-${currentDays}d-${stamp}.${ext}`;
+    a.download = `strongentropy-logs-${currentDays}d${suffix || ''}-${stamp}.${ext}`;
     document.body.appendChild(a);
     a.click();
     a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
+  function entryMatchesSearch(e, lower) {
+    const fields = [e.ip, e.country, e.city, e.asn, e.org, e.os, e.device, e.path, e.method, e.ref, e.ua, parseUA(e.ua)];
+    return fields.some(v => v != null && String(v).toLowerCase().includes(lower));
+  }
+
+  function exportRows() {
+    const term = document.getElementById('search').value.trim();
+    if (!term) return { rows: allEntries, suffix: '' };
+    const lower = term.toLowerCase();
+    const rows = allEntries.filter(e => entryMatchesSearch(e, lower));
+    const suffix = '-search-' + (term.replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '').slice(0, 30) || 'q');
+    return { rows, suffix };
+  }
+
+  function refreshExportCounts() {
+    const { rows } = exportRows();
+    document.querySelectorAll('.export-opt').forEach(opt => {
+      opt.textContent = `${opt.dataset.format.toUpperCase()} (${rows.length})`;
+    });
+  }
+
   function exportData(format) {
-    if (!allEntries.length) return;
+    const { rows, suffix } = exportRows();
+    if (!rows.length) return;
     if (format === 'json') {
-      download(JSON.stringify(allEntries, null, 2), 'application/json', 'json');
+      download(JSON.stringify(rows, null, 2), 'application/json', 'json', suffix);
     } else {
-      download(toCSV(allEntries), 'text/csv', 'csv');
+      download(toCSV(rows), 'text/csv', 'csv', suffix);
     }
   }
 
@@ -514,6 +536,7 @@
   function toggleExportMenu() {
     const dd = document.getElementById('export-dropdown');
     const open = dd.classList.toggle('hidden') === false;
+    if (open) refreshExportCounts();
     document.getElementById('btn-export').setAttribute('aria-expanded', String(open));
   }
 
