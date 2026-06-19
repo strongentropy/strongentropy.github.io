@@ -465,14 +465,15 @@
     return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
   }
 
-  function toCSV(entries) {
+  function toCSV(entries, drop) {
+    drop = drop || new Set();
     const extra = [];
     for (const e of entries) {
       for (const k of Object.keys(e)) {
         if (!CSV_COLS.includes(k) && !extra.includes(k)) extra.push(k);
       }
     }
-    const cols = CSV_COLS.concat(extra);
+    const cols = CSV_COLS.concat(extra).filter(c => !drop.has(c));
     const lines = [cols.join(',')];
     for (const e of entries) {
       lines.push(cols.map(c => csvCell(e[c])).join(','));
@@ -498,55 +499,46 @@
     return fields.some(v => v != null && String(v).toLowerCase().includes(lower));
   }
 
-  // Mirror buildGraph's node-creation conditions so a record's "types" match the graph.
-  function entryHasType(e, type) {
-    switch (type) {
-      case 'ip':      return !!e.ip;
-      case 'country': return !!e.country;
-      case 'city':    return !!e.city;
-      case 'asn':     return e.asn != null && e.asn !== '';
-      case 'org':     return !!e.org;
-      case 'ua':      return !!e.ua;
-      case 'os':      return !!e.os;
-      case 'device':  return !!e.device;
-      case 'path':    return !!e.path && e.path !== '/';
-      case 'ref':     return !!e.ref;
-      default:        return false;
-    }
-  }
-
-  // A record is kept only if every type it would contribute to the graph is still visible.
-  function entryMatchesTypes(e) {
-    return Object.keys(TYPES).every(type => activeTypes.has(type) || !entryHasType(e, type));
+  // Each filterable type maps 1:1 to an export column of the same name.
+  // Deselecting a type drops that column rather than the records.
+  function droppedColumns() {
+    return new Set(Object.keys(TYPES).filter(type => !activeTypes.has(type)));
   }
 
   function exportRows() {
     const term = document.getElementById('search').value.trim();
-    const lower = term.toLowerCase();
     const allActive = activeTypes.size === Object.keys(TYPES).length;
     let rows = allEntries;
-    if (term) rows = rows.filter(e => entryMatchesSearch(e, lower));
-    if (!allActive) rows = rows.filter(entryMatchesTypes);
+    if (term) {
+      const lower = term.toLowerCase();
+      rows = rows.filter(e => entryMatchesSearch(e, lower));
+    }
     let suffix = '';
     if (term) suffix += '-search-' + (term.replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '').slice(0, 30) || 'q');
-    if (!allActive) suffix += '-types-' + [...activeTypes].sort().join('-');
+    if (!allActive) suffix += '-cols-' + [...activeTypes].sort().join('-');
     return { rows, suffix };
   }
 
   function refreshExportCounts() {
     const { rows } = exportRows();
+    const dropped = droppedColumns().size;
+    const colNote = dropped ? `, \u2212${dropped} col${dropped !== 1 ? 's' : ''}` : '';
     document.querySelectorAll('.export-opt').forEach(opt => {
-      opt.textContent = `${opt.dataset.format.toUpperCase()} (${rows.length})`;
+      opt.textContent = `${opt.dataset.format.toUpperCase()} (${rows.length}${colNote})`;
     });
   }
 
   function exportData(format) {
     const { rows, suffix } = exportRows();
     if (!rows.length) return;
+    const drop = droppedColumns();
     if (format === 'json') {
-      download(JSON.stringify(rows, null, 2), 'application/json', 'json', suffix);
+      const projected = drop.size
+        ? rows.map(e => Object.fromEntries(Object.entries(e).filter(([k]) => !drop.has(k))))
+        : rows;
+      download(JSON.stringify(projected, null, 2), 'application/json', 'json', suffix);
     } else {
-      download(toCSV(rows), 'text/csv', 'csv', suffix);
+      download(toCSV(rows, drop), 'text/csv', 'csv', suffix);
     }
   }
 
