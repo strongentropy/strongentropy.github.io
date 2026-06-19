@@ -254,9 +254,11 @@
       })
       .on('mousemove', (event) => {
         const rect = document.getElementById('canvas-wrap').getBoundingClientRect();
+        const panel = document.getElementById('panel');
+        const panelW = panel.classList.contains('open') ? panel.offsetWidth : 0;
         let x = event.clientX - rect.left + 14;
         let y = event.clientY - rect.top - 10;
-        if (x + 270 > rect.width) x -= 280;
+        if (x + 270 > rect.width - panelW) x = event.clientX - rect.left - 14 - 270;
         tooltip.style.left = x + 'px';
         tooltip.style.top  = y + 'px';
       })
