@@ -255,10 +255,19 @@
       .on('mousemove', (event) => {
         const rect = document.getElementById('canvas-wrap').getBoundingClientRect();
         const panel = document.getElementById('panel');
-        const panelW = panel.classList.contains('open') ? panel.offsetWidth : 0;
-        let x = event.clientX - rect.left + 14;
-        let y = event.clientY - rect.top - 10;
-        if (x + 270 > rect.width - panelW) x = event.clientX - rect.left - 14 - 270;
+        const tw = tooltip.offsetWidth, th = tooltip.offsetHeight;
+        const gap = 8;
+        // Right boundary is the panel's actual left edge when it's open, else the canvas edge.
+        const rightLimit = panel.classList.contains('open')
+          ? panel.getBoundingClientRect().left - rect.left - gap
+          : rect.width - gap;
+        const cx = event.clientX - rect.left, cy = event.clientY - rect.top;
+        let x = cx + 14;
+        if (x + tw > rightLimit) x = cx - 14 - tw;   // flip to the left of the cursor
+        if (x < gap) x = gap;                         // clamp to canvas
+        let y = cy - 10;
+        if (y + th > rect.height - gap) y = rect.height - th - gap;
+        if (y < gap) y = gap;
         tooltip.style.left = x + 'px';
         tooltip.style.top  = y + 'px';
       })
