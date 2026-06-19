@@ -445,6 +445,7 @@
         const svg = d3.select('#graph');
         const wrap = document.getElementById('canvas-wrap');
         renderGraph(svg, wrap.clientWidth, wrap.clientHeight);
+        refreshExportCounts();
       });
       container.appendChild(btn);
     });
@@ -497,12 +498,38 @@
     return fields.some(v => v != null && String(v).toLowerCase().includes(lower));
   }
 
+  // Mirror buildGraph's node-creation conditions so a record's "types" match the graph.
+  function entryHasType(e, type) {
+    switch (type) {
+      case 'ip':      return !!e.ip;
+      case 'country': return !!e.country;
+      case 'city':    return !!e.city;
+      case 'asn':     return e.asn != null && e.asn !== '';
+      case 'org':     return !!e.org;
+      case 'ua':      return !!e.ua;
+      case 'os':      return !!e.os;
+      case 'device':  return !!e.device;
+      case 'path':    return !!e.path && e.path !== '/';
+      case 'ref':     return !!e.ref;
+      default:        return false;
+    }
+  }
+
+  // A record is kept only if every type it would contribute to the graph is still visible.
+  function entryMatchesTypes(e) {
+    return Object.keys(TYPES).every(type => activeTypes.has(type) || !entryHasType(e, type));
+  }
+
   function exportRows() {
     const term = document.getElementById('search').value.trim();
-    if (!term) return { rows: allEntries, suffix: '' };
     const lower = term.toLowerCase();
-    const rows = allEntries.filter(e => entryMatchesSearch(e, lower));
-    const suffix = '-search-' + (term.replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '').slice(0, 30) || 'q');
+    const allActive = activeTypes.size === Object.keys(TYPES).length;
+    let rows = allEntries;
+    if (term) rows = rows.filter(e => entryMatchesSearch(e, lower));
+    if (!allActive) rows = rows.filter(entryMatchesTypes);
+    let suffix = '';
+    if (term) suffix += '-search-' + (term.replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '').slice(0, 30) || 'q');
+    if (!allActive) suffix += '-types-' + [...activeTypes].sort().join('-');
     return { rows, suffix };
   }
 
