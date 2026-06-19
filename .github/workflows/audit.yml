@@ -7,8 +7,6 @@ on:
     paths:
       - 'worker/pnpm-lock.yaml'
   pull_request:
-    paths:
-      - 'worker/pnpm-lock.yaml'
   schedule:
     - cron: '0 6 * * 1'  # weekly Monday 06:00 UTC
 
