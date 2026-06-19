@@ -9,12 +9,6 @@
   },
   "devDependencies": {
     "@jazzer.js/core": "^4.0.0",
-    "wrangler": "^4.101.0"
-  },
-  "pnpm": {
-    "overrides": {
-      "ws@>=8.0.0 <8.21.0": "^8.21.0",
-      "tar@<7.5.16": "^7.5.16"
-    }
+    "wrangler": "^4.103.0"
   }
 }
