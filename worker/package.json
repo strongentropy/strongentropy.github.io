@@ -10,5 +10,10 @@
   "devDependencies": {
     "@jazzer.js/core": "^4.0.0",
     "wrangler": "^4.147.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "sharp": "0.35.5"
+    }
   }
 }
